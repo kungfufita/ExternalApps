@@ -3,9 +3,13 @@
 ## What this venture is
 
 Digital Products Studio creates and sells ready-to-use digital products — spreadsheets,
-Notion systems, planners, and niche toolkits — through marketplaces and, later, its own
-storefront. Customers are practitioners in one sharply specific niche who pay to skip
-building a tool themselves.
+Notion systems, and toolkits — through marketplaces and, later, its own storefront.
+
+**Niche (chosen 2026-08-12): self-managing small landlords, 1–10 rental units.**
+People who own a few rentals and run them without a property manager. They buy tools
+that touch their money — deal analyzers, rent and expense trackers, tax-prep packs —
+and pay premium prices for utility, not design. Well-built rental calculators sell for
+$50–$199+ while generic planners and budget spreadsheets fight over $5.
 
 ## Why the platform is doing it
 

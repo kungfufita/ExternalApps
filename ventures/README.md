@@ -5,7 +5,7 @@ keep it current — this table is the platform's map.
 
 | Venture | Stage | Owner | Structure | One-line description |
 |---|---|---|---|---|
-| [Digital Products Studio](digital-products/README.md) | 1 — Validate | Troy | Internal | Templates and toolkits for one specific niche — the platform's cash-flow opener |
+| [Digital Products Studio](digital-products/README.md) | 1 — Validate | Troy | Internal | Landlord tools (deal analyzers, trackers, tax packs) for self-managing small landlords — the platform's cash-flow opener |
 | [Productized AI Service](ai-service/README.md) | 1 — Validate | Troy | Internal | Fixed-scope subscription deliverables on an AI-first pipeline with human review |
 | [Niche Micro-SaaS](micro-saas/README.md) | 1 — Validate | Troy | Internal | One painful workflow, one industry, concierge-first — the long-game compounder |
 
