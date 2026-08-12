@@ -436,9 +436,15 @@
     { id: 'fba', name: 'E-commerce private label', s: { sim: 2, prof: 3, auto: 3, cap: 2, speed: 2, rec: 2, dem: 4, comp: 1 }, note: 'Inventory risk, tied-up capital, platform dependency; passes only with a truly differentiated product.' }
   ];
 
+  var SEED_VENTURES = [
+    { name: 'Digital Products Studio', owner: 'Troy', status: 'ok', stage: 1, structure: 'internal', revenue: 0, cost: 0, cash: 0, rung: 1, milestone: '25+ sales across 3 products within 90 days of first listing', notes: 'Chartered 2026-08-12 from scoreboard #1 (85/100) — cash-flow opener' },
+    { name: 'Productized AI Service', owner: 'Troy', status: 'ok', stage: 1, structure: 'internal', revenue: 0, cost: 0, cash: 0, rung: 1, milestone: '3 paying clients at target price within 60 days of outreach', notes: 'Chartered 2026-08-12 from scoreboard #2 (80/100) — recurring-revenue play' },
+    { name: 'Niche Micro-SaaS', owner: 'Troy', status: 'ok', stage: 1, structure: 'internal', revenue: 0, cost: 0, cash: 0, rung: 1, milestone: '5 paying concierge customers before any code is written', notes: 'Chartered 2026-08-12 from scoreboard #3 (77/100) — long-game compounder' }
+  ];
+
   function seedState() {
     return {
-      ventures: [],
+      ventures: JSON.parse(JSON.stringify(SEED_VENTURES)),
       opportunities: JSON.parse(JSON.stringify(SEED_OPPS)),
       weights: Object.assign({}, DEFAULT_WEIGHTS)
     };
