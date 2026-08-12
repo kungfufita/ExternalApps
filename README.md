@@ -36,8 +36,9 @@ flowchart LR
 New avenues enter through the [opportunity scoring model](docs/06-opportunity-scoring.md) —
 candidates are ranked on eight weighted factors (profitability and automation
 potential heaviest, simplicity next) in [`research/opportunities.md`](research/opportunities.md),
-and the [platform console](console/index.html) provides an interactive dashboard
-for scores, venture status, progress, and financials.
+and the platform console provides an interactive dashboard for scores, venture
+status, progress, and financials — in a [monitor interface](console/index.html)
+and a [phone interface](console/mobile.html) that share the same data.
 
 ## How this repository is organized
 
@@ -53,8 +54,9 @@ ExternalApps/
 │   └── 06-opportunity-scoring.md
 ├── research/                Opportunity research — scored candidate businesses
 │   └── opportunities.md
-├── console/                 Interactive platform console (open index.html)
-│   └── index.html           Status, progress, financials, opportunity scorer
+├── console/                 Interactive platform console (two interfaces, shared data)
+│   ├── index.html           Monitor interface — sidebar layout, tables, charts
+│   └── mobile.html          Phone interface — bottom nav, card lists, touch-first
 └── ventures/                One directory per avenue of business
     ├── README.md            Venture registry — the live index of all ventures
     └── _template/           Copy this to start a new venture

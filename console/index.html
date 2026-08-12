@@ -67,6 +67,26 @@
   }
   .app { max-width: 1060px; margin: 0 auto; }
 
+  /* Monitor layout: sidebar navigation + wide grid from 960px up */
+  @media (min-width: 960px) {
+    .app { max-width: 1460px; }
+    .shell { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+    nav.tabs {
+      flex-direction: column; gap: 0.15rem;
+      border-bottom: none; border-right: 1px solid var(--grid);
+      padding-right: 0.75rem; margin-bottom: 0;
+      position: sticky; top: 1rem;
+    }
+    .tab {
+      text-align: left; border-bottom: none; border-left: 2px solid transparent;
+      border-radius: 0 6px 6px 0; padding: 0.55rem 0.8rem;
+    }
+    .tab[aria-selected="true"] { border-bottom: none; border-left-color: var(--accent); background: var(--accent-wash); }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .grid2 .card { margin-bottom: 0; }
+    #panel-overview .grid2 { margin-bottom: 1rem; }
+  }
+
   header.top {
     display: flex; flex-wrap: wrap; gap: 1rem;
     align-items: flex-end; justify-content: space-between;
@@ -211,7 +231,7 @@
   <header class="top">
     <div class="brand">
       <h1>ExternalApps Console</h1>
-      <p>Ventures, opportunities, and financials for the multi-venture platform. Data is saved in this browser; export JSON to commit it to the repo.</p>
+      <p>Monitor interface — ventures, opportunities, and financials for the multi-venture platform. Data is saved in this browser; export JSON to commit it to the repo. On a phone, use the <a href="mobile.html">phone interface</a>.</p>
     </div>
     <div class="data-controls">
       <button id="btnExport" title="Download all console data as JSON">Export JSON</button>
@@ -221,6 +241,7 @@
     </div>
   </header>
 
+  <div class="shell">
   <nav class="tabs" role="tablist">
     <button class="tab" role="tab" data-panel="overview" aria-selected="true">Overview</button>
     <button class="tab" role="tab" data-panel="ventures" aria-selected="false">Ventures</button>
@@ -228,15 +249,18 @@
     <button class="tab" role="tab" data-panel="financials" aria-selected="false">Financials</button>
   </nav>
 
+  <main class="panels">
   <section id="panel-overview" class="panel active">
     <div class="tiles" id="ovTiles"></div>
-    <div class="card">
-      <h2>Ventures by stage <span class="sub">0 Idea · 1 Validate · 2 Build · 3 Operate · 4 Scale/Sustain</span></h2>
-      <div id="ovStages"></div>
-    </div>
-    <div class="card">
-      <h2>Top opportunities <span class="sub">from the research scoreboard — full list in the Opportunities tab</span></h2>
-      <div id="ovTopOpps"></div>
+    <div class="grid2">
+      <div class="card">
+        <h2>Ventures by stage <span class="sub">0 Idea · 1 Validate · 2 Build · 3 Operate · 4 Scale/Sustain</span></h2>
+        <div id="ovStages"></div>
+      </div>
+      <div class="card">
+        <h2>Top opportunities <span class="sub">full list in the Opportunities tab</span></h2>
+        <div id="ovTopOpps"></div>
+      </div>
     </div>
     <div class="card">
       <h2>Attention needed</h2>
@@ -287,6 +311,8 @@
       <p class="hint">Runway = cash reserve ÷ monthly net burn. Profitable ventures show ∞. Figures are monthly and venture-reported.</p>
     </div>
   </section>
+  </main>
+  </div>
 </div>
 
 <dialog id="ventureDialog">
