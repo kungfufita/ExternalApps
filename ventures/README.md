@@ -5,7 +5,9 @@ keep it current — this table is the platform's map.
 
 | Venture | Stage | Owner | Structure | One-line description |
 |---|---|---|---|---|
-| _(none yet — copy `_template/` to start one)_ | | | | |
+| [Digital Products Studio](digital-products/README.md) | 1 — Validate | Troy | Internal | Templates and toolkits for one specific niche — the platform's cash-flow opener |
+| [Productized AI Service](ai-service/README.md) | 1 — Validate | Troy | Internal | Fixed-scope subscription deliverables on an AI-first pipeline with human review |
+| [Niche Micro-SaaS](micro-saas/README.md) | 1 — Validate | Troy | Internal | One painful workflow, one industry, concierge-first — the long-game compounder |
 
 **Stage** comes from [Pillar 2 — Development](../docs/02-development.md)
 (0 Idea · 1 Validate · 2 Build · 3 Operate · 4 Scale/Sustain).
