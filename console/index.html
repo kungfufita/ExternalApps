@@ -1,0 +1,858 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ExternalApps Console</title>
+<style>
+  :root {
+    --page: #f9f9f7;
+    --surface: #fcfcfb;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --accent: #2a78d6;        /* series-1 blue */
+    --series-2: #eb6834;      /* orange */
+    --good: #0ca30c;
+    --good-text: #006300;
+    --warning: #fab219;
+    --critical: #d03b3b;
+    --accent-wash: rgba(42,120,214,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page: #0d0d0d;
+      --surface: #1a1a19;
+      --ink: #ffffff;
+      --ink-2: #c3c2b7;
+      --muted: #898781;
+      --grid: #2c2c2a;
+      --baseline: #383835;
+      --border: rgba(255,255,255,0.10);
+      --accent: #3987e5;
+      --series-2: #d95926;
+      --good: #0ca30c;
+      --good-text: #0ca30c;
+      --warning: #fab219;
+      --critical: #d03b3b;
+      --accent-wash: rgba(57,135,229,0.14);
+    }
+  }
+  :root[data-theme="dark"] {
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink: #ffffff;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255,255,255,0.10);
+    --accent: #3987e5;
+    --series-2: #d95926;
+    --good: #0ca30c;
+    --good-text: #0ca30c;
+    --warning: #fab219;
+    --critical: #d03b3b;
+    --accent-wash: rgba(57,135,229,0.14);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 1.5rem 1rem 4rem;
+  }
+  .app { max-width: 1060px; margin: 0 auto; }
+
+  header.top {
+    display: flex; flex-wrap: wrap; gap: 1rem;
+    align-items: flex-end; justify-content: space-between;
+    margin-bottom: 1.1rem;
+  }
+  .brand h1 { font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  .brand p { margin: 0.1rem 0 0; color: var(--ink-2); font-size: 0.85rem; }
+  .data-controls { display: flex; gap: 0.5rem; }
+
+  button, .btn {
+    font: inherit; font-size: 0.82rem; font-weight: 550;
+    color: var(--ink); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 0.4rem 0.8rem; cursor: pointer;
+  }
+  button:hover { background: var(--accent-wash); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover { filter: brightness(1.08); }
+  button.danger-ghost { color: var(--critical); }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .tab:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+
+  nav.tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--grid); margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .tab {
+    font: inherit; font-size: 0.88rem; font-weight: 550; color: var(--ink-2);
+    background: none; border: none; border-bottom: 2px solid transparent;
+    padding: 0.5rem 0.9rem; cursor: pointer; border-radius: 0;
+  }
+  .tab:hover { color: var(--ink); background: none; }
+  .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.1rem 1.25rem; margin-bottom: 1rem;
+  }
+  .card h2 { font-size: 0.95rem; font-weight: 650; margin: 0 0 0.75rem; }
+  .card h2 .sub { font-weight: 400; color: var(--muted); font-size: 0.8rem; margin-left: 0.4rem; }
+
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+  .tile {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.8rem 1rem;
+  }
+  .tile .k { font-size: 0.72rem; font-weight: 550; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .tile .v { font-size: 1.55rem; font-weight: 650; line-height: 1.2; margin-top: 0.15rem; }
+  .tile .d { font-size: 0.78rem; color: var(--ink-2); margin-top: 0.1rem; }
+  .tile .v.good { color: var(--good-text); }
+  .tile .v.bad { color: var(--critical); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  th, td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .table-scroll { overflow-x: auto; }
+  tr:hover td { background: var(--accent-wash); }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 0.3em;
+    font-size: 0.75rem; font-weight: 600; border-radius: 999px;
+    padding: 0.1rem 0.6rem; white-space: nowrap;
+  }
+  .pill::before { font-size: 0.8em; }
+  .pill.ok       { color: var(--good-text); background: color-mix(in srgb, var(--good) 14%, transparent); }
+  .pill.ok::before { content: "●"; }
+  .pill.risk     { color: var(--ink); background: color-mix(in srgb, var(--warning) 22%, transparent); }
+  .pill.risk::before { content: "▲"; }
+  .pill.blocked  { color: var(--critical); background: color-mix(in srgb, var(--critical) 14%, transparent); }
+  .pill.blocked::before { content: "■"; }
+  .band { font-size: 0.75rem; font-weight: 600; }
+  .band.strong { color: var(--good-text); }
+  .band.situational { color: var(--ink-2); }
+  .band.pass { color: var(--muted); }
+
+  .stagebar { display: flex; gap: 2px; width: 90px; height: 8px; }
+  .stagebar i { flex: 1; border-radius: 2px; background: var(--grid); }
+  .stagebar i.on { background: var(--accent); }
+
+  .empty {
+    border: 1px dashed var(--baseline); border-radius: 8px;
+    color: var(--ink-2); text-align: center; padding: 2rem 1rem; font-size: 0.9rem;
+  }
+  .empty button { margin-top: 0.7rem; }
+
+  .weights { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.6rem 1rem; }
+  .weights label { font-size: 0.78rem; color: var(--ink-2); display: block; }
+  .weights input { width: 100%; margin-top: 0.15rem; }
+  .weights input[type="number"] {
+    font: inherit; padding: 0.3rem 0.45rem; border: 1px solid var(--border);
+    border-radius: 5px; background: var(--page); color: var(--ink);
+  }
+  .weights-note { font-size: 0.78rem; color: var(--muted); margin-top: 0.6rem; }
+
+  figure.chart { margin: 0; }
+  figure.chart svg { display: block; max-width: 100%; height: auto; }
+  figcaption { font-size: 0.78rem; color: var(--muted); margin-top: 0.5rem; }
+  .legend { display: flex; gap: 1rem; font-size: 0.78rem; color: var(--ink-2); margin: 0 0 0.5rem; }
+  .legend span { display: inline-flex; align-items: center; gap: 0.35em; }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+  #tip {
+    position: fixed; pointer-events: none; z-index: 50; display: none;
+    background: var(--ink); color: var(--page);
+    font-size: 0.78rem; padding: 0.3rem 0.55rem; border-radius: 5px;
+    max-width: 260px;
+  }
+
+  dialog {
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--surface); color: var(--ink);
+    padding: 1.25rem 1.4rem; width: min(560px, 92vw);
+  }
+  dialog::backdrop { background: rgba(0,0,0,0.35); }
+  dialog h3 { margin: 0 0 0.9rem; font-size: 1rem; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem 1rem; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .form-grid label { display: block; font-size: 0.78rem; color: var(--ink-2); font-weight: 550; }
+  .form-grid input, .form-grid select, .form-grid textarea {
+    font: inherit; width: 100%; margin-top: 0.2rem;
+    padding: 0.4rem 0.5rem; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--page); color: var(--ink);
+  }
+  .factor-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; }
+  .dialog-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.1rem; }
+  .row-actions { display: flex; gap: 0.3rem; }
+  .row-actions button { padding: 0.15rem 0.5rem; font-size: 0.75rem; }
+
+  .hint { font-size: 0.8rem; color: var(--muted); margin: 0.4rem 0 0; }
+  @media (prefers-reduced-motion: no-preference) {
+    .tab, button { transition: background 0.12s ease, color 0.12s ease; }
+  }
+  @media (max-width: 620px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .factor-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>ExternalApps Console</h1>
+      <p>Ventures, opportunities, and financials for the multi-venture platform. Data is saved in this browser; export JSON to commit it to the repo.</p>
+    </div>
+    <div class="data-controls">
+      <button id="btnExport" title="Download all console data as JSON">Export JSON</button>
+      <button id="btnImport" title="Load console data from a JSON export">Import</button>
+      <button id="btnReset" class="danger-ghost" title="Discard local changes and restore seed data">Reset to seed</button>
+      <input type="file" id="fileImport" accept="application/json" hidden>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-panel="overview" aria-selected="true">Overview</button>
+    <button class="tab" role="tab" data-panel="ventures" aria-selected="false">Ventures</button>
+    <button class="tab" role="tab" data-panel="opps" aria-selected="false">Opportunities</button>
+    <button class="tab" role="tab" data-panel="financials" aria-selected="false">Financials</button>
+  </nav>
+
+  <section id="panel-overview" class="panel active">
+    <div class="tiles" id="ovTiles"></div>
+    <div class="card">
+      <h2>Ventures by stage <span class="sub">0 Idea · 1 Validate · 2 Build · 3 Operate · 4 Scale/Sustain</span></h2>
+      <div id="ovStages"></div>
+    </div>
+    <div class="card">
+      <h2>Top opportunities <span class="sub">from the research scoreboard — full list in the Opportunities tab</span></h2>
+      <div id="ovTopOpps"></div>
+    </div>
+    <div class="card">
+      <h2>Attention needed</h2>
+      <div id="ovAttention"></div>
+    </div>
+  </section>
+
+  <section id="panel-ventures" class="panel">
+    <div class="card">
+      <h2 style="display:flex; justify-content:space-between; align-items:center;">
+        Venture registry
+        <button class="primary" id="btnAddVenture">+ Add venture</button>
+      </h2>
+      <div id="ventureTable"></div>
+      <p class="hint">Stage and status here mirror each venture's <code>roadmap.md</code> and <code>operations.md</code> in the repo — the console is the live view, the files are the record.</p>
+    </div>
+  </section>
+
+  <section id="panel-opps" class="panel">
+    <div class="card">
+      <h2>Scoring weights <span class="sub">scores re-rank live; a candidate that only wins under one narrow weighting is fragile</span></h2>
+      <div class="weights" id="weightInputs"></div>
+      <p class="weights-note" id="weightTotal"></p>
+    </div>
+    <div class="card">
+      <h2 style="display:flex; justify-content:space-between; align-items:center;">
+        Opportunity scoreboard
+        <span>
+          <button id="btnResetWeights">Reset weights</button>
+          <button class="primary" id="btnAddOpp">+ Add opportunity</button>
+        </span>
+      </h2>
+      <figure class="chart" id="oppChart"></figure>
+      <div class="table-scroll" id="oppTable" style="margin-top:1rem;"></div>
+      <p class="hint">Factors are scored 1–5, higher is always better (complexity, capital, and competition are inverted). Bands: ≥70 strong candidate · 55–69 situational · &lt;55 pass for now. Scores are desk-research hypotheses — stage 1 validates them.</p>
+    </div>
+  </section>
+
+  <section id="panel-financials" class="panel">
+    <div class="tiles" id="finTiles"></div>
+    <div class="card">
+      <h2>Monthly revenue vs cost by venture</h2>
+      <div id="finChart"></div>
+    </div>
+    <div class="card">
+      <h2>Financial detail</h2>
+      <div class="table-scroll" id="finTable"></div>
+      <p class="hint">Runway = cash reserve ÷ monthly net burn. Profitable ventures show ∞. Figures are monthly and venture-reported.</p>
+    </div>
+  </section>
+</div>
+
+<dialog id="ventureDialog">
+  <h3 id="ventureDialogTitle">Add venture</h3>
+  <form id="ventureForm" method="dialog">
+    <div class="form-grid">
+      <label class="full">Name
+        <input name="name" required placeholder="e.g. Template Studio">
+      </label>
+      <label>Owner
+        <input name="owner" placeholder="who is accountable">
+      </label>
+      <label>Status
+        <select name="status">
+          <option value="ok">On track</option>
+          <option value="risk">At risk</option>
+          <option value="blocked">Blocked</option>
+        </select>
+      </label>
+      <label>Stage
+        <select name="stage">
+          <option value="0">0 — Idea</option>
+          <option value="1">1 — Validate</option>
+          <option value="2">2 — Build</option>
+          <option value="3">3 — Operate</option>
+          <option value="4">4 — Scale/Sustain</option>
+        </select>
+      </label>
+      <label>Structure
+        <select name="structure">
+          <option value="internal">Internal line of business</option>
+          <option value="entity">Separate entity</option>
+          <option value="jv">Joint venture</option>
+        </select>
+      </label>
+      <label>Monthly revenue ($)
+        <input name="revenue" type="number" min="0" step="1" value="0">
+      </label>
+      <label>Monthly cost ($)
+        <input name="cost" type="number" min="0" step="1" value="0">
+      </label>
+      <label>Cash reserve ($)
+        <input name="cash" type="number" min="0" step="1" value="0">
+      </label>
+      <label>Automation rung (1–4)
+        <select name="rung">
+          <option value="1">1 — Documented</option>
+          <option value="2">2 — Assisted</option>
+          <option value="3">3 — Supervised</option>
+          <option value="4">4 — Autonomous</option>
+        </select>
+      </label>
+      <label class="full">Next milestone
+        <input name="milestone" placeholder="the one thing that moves it to the next stage">
+      </label>
+      <label class="full">Notes
+        <textarea name="notes" rows="2" placeholder="deviations, decisions, learning"></textarea>
+      </label>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" id="ventureCancel">Cancel</button>
+      <button type="submit" class="primary">Save venture</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="oppDialog">
+  <h3 id="oppDialogTitle">Add opportunity</h3>
+  <form id="oppForm" method="dialog">
+    <div class="form-grid">
+      <label class="full">Name
+        <input name="name" required placeholder="e.g. Niche micro-SaaS">
+      </label>
+      <label class="full">One-line rationale
+        <input name="note" placeholder="why this might work / key risk">
+      </label>
+    </div>
+    <p class="hint" style="margin:0.8rem 0 0.4rem;">Factor scores, 1–5 (higher is better — complexity, capital, and competition inverted):</p>
+    <div class="factor-grid" id="oppFactors"></div>
+    <div class="dialog-actions">
+      <button type="button" id="oppCancel">Cancel</button>
+      <button type="submit" class="primary">Save opportunity</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="tip" role="status"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORE_KEY = 'externalapps-console-v1';
+
+  var FACTORS = [
+    { key: 'sim',   label: 'Simplicity',            hint: 'inverse of complexity' },
+    { key: 'prof',  label: 'Profitability',          hint: 'margin potential' },
+    { key: 'auto',  label: 'Automation potential',   hint: 'more hands-off = higher' },
+    { key: 'cap',   label: 'Capital efficiency',     hint: 'lower startup cost = higher' },
+    { key: 'speed', label: 'Speed to revenue',       hint: 'faster first dollar = higher' },
+    { key: 'rec',   label: 'Recurring revenue',      hint: 'subscriptions / repeat buys' },
+    { key: 'dem',   label: 'Market demand',          hint: 'size and durability' },
+    { key: 'comp',  label: 'Competitive room',       hint: 'less rivalry = higher' }
+  ];
+
+  var DEFAULT_WEIGHTS = { sim: 15, prof: 20, auto: 20, cap: 10, speed: 10, rec: 10, dem: 10, comp: 5 };
+
+  var SEED_OPPS = [
+    { id: 'digital-products', name: 'Digital products & templates', s: { sim: 5, prof: 5, auto: 5, cap: 5, speed: 4, rec: 2, dem: 3, comp: 2 }, note: 'Near-zero marginal cost, fully automatable delivery; one-off sales and crowded marketplaces are the catch.' },
+    { id: 'ai-service', name: 'Productized AI service', s: { sim: 3, prof: 4, auto: 5, cap: 4, speed: 4, rec: 4, dem: 4, comp: 3 }, note: 'Fixed-scope service on an AI-first pipeline with human review; quality control is the whole game.' },
+    { id: 'micro-saas', name: 'Niche micro-SaaS', s: { sim: 2, prof: 5, auto: 5, cap: 4, speed: 2, rec: 5, dem: 3, comp: 3 }, note: 'Best margins and recurrence; least simple and slow to first revenue — validate with a manual version first.' },
+    { id: 'course', name: 'Online course / cohort', s: { sim: 3, prof: 5, auto: 4, cap: 5, speed: 3, rec: 2, dem: 3, comp: 2 }, note: 'Strong only with genuine demonstrable expertise; otherwise a content-marketing grind.' },
+    { id: 'self-storage', name: 'Self-storage', s: { sim: 3, prof: 4, auto: 5, cap: 1, speed: 1, rec: 5, dem: 4, comp: 3 }, note: 'Most automatable physical business; needs patient six-figure capital before the first dollar.' },
+    { id: 'newsletter', name: 'Newsletter / content site', s: { sim: 4, prof: 4, auto: 3, cap: 5, speed: 2, rec: 3, dem: 3, comp: 2 }, note: 'Best used as the audience engine that de-risks the digital plays, not as a standalone bet.' },
+    { id: 'car-wash', name: 'Automated car wash', s: { sim: 3, prof: 4, auto: 5, cap: 1, speed: 2, rec: 3, dem: 3, comp: 3 }, note: 'High automation, real margins; capital, siting, and permitting gate entry.' },
+    { id: 'pod', name: 'Print-on-demand storefront', s: { sim: 4, prof: 2, auto: 5, cap: 5, speed: 3, rec: 1, dem: 3, comp: 1 }, note: 'Fully automated fulfillment but thin margins and brutal competition; attach to an audience or skip.' },
+    { id: 'vending', name: 'Smart vending routes', s: { sim: 4, prof: 3, auto: 4, cap: 2, speed: 3, rec: 3, dem: 3, comp: 3 }, note: 'Semi-passive and proven; middling per-machine economics mean it scales by fleet.' },
+    { id: 'cleaning', name: 'Remote-managed cleaning co', s: { sim: 3, prof: 3, auto: 2, cap: 4, speed: 4, rec: 4, dem: 4, comp: 2 }, note: 'Fast to revenue and recurring, but automation tops out low — quality problems are human problems.' },
+    { id: 'laundromat', name: 'Laundromat', s: { sim: 3, prof: 3, auto: 4, cap: 1, speed: 2, rec: 4, dem: 4, comp: 3 }, note: 'Durable semi-absentee cash flow; acquisition of an underpriced store beats greenfield.' },
+    { id: 'str', name: 'Short-term rental management', s: { sim: 2, prof: 3, auto: 3, cap: 3, speed: 3, rec: 4, dem: 3, comp: 2 }, note: 'Recurring management fees without property capital; operationally messy and regulation-exposed.' },
+    { id: 'fba', name: 'E-commerce private label', s: { sim: 2, prof: 3, auto: 3, cap: 2, speed: 2, rec: 2, dem: 4, comp: 1 }, note: 'Inventory risk, tied-up capital, platform dependency; passes only with a truly differentiated product.' }
+  ];
+
+  function seedState() {
+    return {
+      ventures: [],
+      opportunities: JSON.parse(JSON.stringify(SEED_OPPS)),
+      weights: Object.assign({}, DEFAULT_WEIGHTS)
+    };
+  }
+
+  var state = load();
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.opportunities && parsed.weights) return parsed;
+      }
+    } catch (e) { /* corrupted store falls through to seed */ }
+    return seedState();
+  }
+  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* private mode */ } }
+
+  // ---------- helpers ----------
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function fmtMoney(n) {
+    n = Number(n) || 0;
+    return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+  function weightTotal() {
+    return FACTORS.reduce(function (t, f) { return t + (Number(state.weights[f.key]) || 0); }, 0);
+  }
+  function oppScore(o) {
+    var tw = weightTotal();
+    if (!tw) return 0;
+    var sum = FACTORS.reduce(function (t, f) {
+      return t + (Number(o.s[f.key]) || 0) * (Number(state.weights[f.key]) || 0);
+    }, 0);
+    return Math.round(sum / (5 * tw) * 1000) / 10;
+  }
+  function band(score) {
+    if (score >= 70) return { cls: 'strong', label: 'Strong candidate' };
+    if (score >= 55) return { cls: 'situational', label: 'Situational' };
+    return { cls: 'pass', label: 'Pass for now' };
+  }
+  function rankedOpps() {
+    return state.opportunities.slice().sort(function (a, b) { return oppScore(b) - oppScore(a); });
+  }
+  function runwayMonths(v) {
+    var burn = (Number(v.cost) || 0) - (Number(v.revenue) || 0);
+    if (burn <= 0) return Infinity;
+    return (Number(v.cash) || 0) / burn;
+  }
+  var STAGE_NAMES = ['Idea', 'Validate', 'Build', 'Operate', 'Scale/Sustain'];
+  var STRUCTURES = { internal: 'Internal', entity: 'Entity', jv: 'JV' };
+  var STATUS = {
+    ok: { cls: 'ok', label: 'On track' },
+    risk: { cls: 'risk', label: 'At risk' },
+    blocked: { cls: 'blocked', label: 'Blocked' }
+  };
+
+  // ---------- tooltip ----------
+  var tip = document.getElementById('tip');
+  function bindTips(root) {
+    root.querySelectorAll('[data-tip]').forEach(function (el) {
+      el.addEventListener('mousemove', function (ev) {
+        tip.textContent = el.getAttribute('data-tip');
+        tip.style.display = 'block';
+        var x = Math.min(ev.clientX + 12, window.innerWidth - tip.offsetWidth - 8);
+        tip.style.left = x + 'px';
+        tip.style.top = (ev.clientY + 14) + 'px';
+      });
+      el.addEventListener('mouseleave', function () { tip.style.display = 'none'; });
+    });
+  }
+
+  // ---------- charts (inline SVG) ----------
+  function hbarChart(rows, opts) {
+    // rows: [{label, values:[{v, color, tip}], annot}]
+    var maxV = opts.max || Math.max(1, Math.max.apply(null, rows.map(function (r) {
+      return Math.max.apply(null, r.values.map(function (x) { return x.v; }));
+    })));
+    var barH = opts.barH || 14, gap = 2, groupPad = opts.groupPad || 10;
+    var labelW = opts.labelW || 190, valueW = 64;
+    var plotW = 620;
+    var groupH = rows.length ? (rows[0].values.length * (barH + gap) - gap) : barH;
+    var H = rows.length * (groupH + groupPad) + 8;
+    var W = labelW + plotW + valueW;
+    var out = [];
+    out.push('<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(opts.aria || '') + '">');
+    // hairline grid at quarters
+    for (var g = 1; g <= 4; g++) {
+      var gx = labelW + plotW * g / 4;
+      out.push('<line x1="' + gx + '" y1="0" x2="' + gx + '" y2="' + (H - 4) + '" stroke="var(--grid)" stroke-width="1"/>');
+    }
+    rows.forEach(function (r, i) {
+      var y0 = i * (groupH + groupPad) + 4;
+      var labelY = y0 + groupH / 2 + 4;
+      out.push('<text x="' + (labelW - 10) + '" y="' + labelY + '" text-anchor="end" font-size="12" fill="var(--ink)">' + esc(r.label) + '</text>');
+      r.values.forEach(function (val, j) {
+        var y = y0 + j * (barH + gap);
+        var w = Math.max(0, val.v / maxV * plotW);
+        out.push('<rect x="' + labelW + '" y="' + y + '" width="' + Math.max(w, val.v > 0 ? 2 : 0) + '" height="' + barH +
+          '" rx="4" fill="' + val.color + '" data-tip="' + esc(val.tip || '') + '"/>');
+      });
+      if (r.annot != null) {
+        var aw = Math.max.apply(null, r.values.map(function (x) { return x.v; })) / maxV * plotW;
+        out.push('<text x="' + (labelW + aw + 8) + '" y="' + labelY + '" font-size="12" fill="var(--ink-2)" style="font-variant-numeric:tabular-nums">' + esc(r.annot) + '</text>');
+      }
+    });
+    // baseline
+    out.push('<line x1="' + labelW + '" y1="0" x2="' + labelW + '" y2="' + (H - 4) + '" stroke="var(--baseline)" stroke-width="1"/>');
+    out.push('</svg>');
+    return out.join('');
+  }
+
+  // ---------- render: overview ----------
+  function renderOverview() {
+    var vs = state.ventures;
+    var totalRev = vs.reduce(function (t, v) { return t + (Number(v.revenue) || 0); }, 0);
+    var totalCost = vs.reduce(function (t, v) { return t + (Number(v.cost) || 0); }, 0);
+    var net = totalRev - totalCost;
+    var tiles = [
+      { k: 'Active ventures', v: String(vs.length), d: vs.length ? '' : 'charter the first from Opportunities' },
+      { k: 'Monthly revenue', v: fmtMoney(totalRev), d: 'across all ventures' },
+      { k: 'Monthly cost', v: fmtMoney(totalCost), d: 'across all ventures' },
+      { k: 'Net / month', v: (net < 0 ? '−' : net > 0 ? '+' : '') + fmtMoney(Math.abs(net)), d: net > 0 ? 'platform cash-positive' : net < 0 ? 'platform burning' : '', cls: net > 0 ? 'good' : (net < 0 ? 'bad' : '') }
+    ];
+    document.getElementById('ovTiles').innerHTML = tiles.map(function (t) {
+      return '<div class="tile"><div class="k">' + esc(t.k) + '</div><div class="v ' + (t.cls || '') + '">' + esc(t.v) + '</div><div class="d">' + esc(t.d) + '</div></div>';
+    }).join('');
+
+    // stage distribution
+    var counts = [0, 0, 0, 0, 0];
+    vs.forEach(function (v) { counts[Number(v.stage) || 0]++; });
+    var maxC = Math.max.apply(null, counts.concat([1]));
+    var stageEl = document.getElementById('ovStages');
+    if (!vs.length) {
+      stageEl.innerHTML = '<div class="empty">No ventures yet. The scored opportunity list is the pipeline — charter the strongest candidate as a stage-0 venture.</div>';
+    } else {
+      stageEl.innerHTML = '<figure class="chart">' + hbarChart(counts.map(function (c, i) {
+        return { label: i + ' — ' + STAGE_NAMES[i], values: [{ v: c, color: 'var(--accent)', tip: c + ' venture' + (c === 1 ? '' : 's') + ' in ' + STAGE_NAMES[i] }], annot: String(c) };
+      }), { max: maxC, aria: 'Number of ventures in each development stage', labelW: 160 }) + '</figure>';
+    }
+
+    // top opportunities
+    var top = rankedOpps().slice(0, 3);
+    document.getElementById('ovTopOpps').innerHTML = '<div class="table-scroll"><table><thead><tr><th>#</th><th>Opportunity</th><th class="num">Score</th><th>Band</th><th>Rationale</th></tr></thead><tbody>' +
+      top.map(function (o, i) {
+        var sc = oppScore(o), b = band(sc);
+        return '<tr><td>' + (i + 1) + '</td><td><strong>' + esc(o.name) + '</strong></td><td class="num">' + sc.toFixed(1) + '</td><td><span class="band ' + b.cls + '">' + b.label + '</span></td><td style="color:var(--ink-2)">' + esc(o.note || '') + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+
+    // attention
+    var items = [];
+    vs.forEach(function (v) {
+      var st = STATUS[v.status] || STATUS.ok;
+      if (v.status === 'blocked') items.push('<span class="pill blocked">Blocked</span> <strong>' + esc(v.name) + '</strong> — ' + esc(v.milestone || 'no milestone set'));
+      else if (v.status === 'risk') items.push('<span class="pill risk">At risk</span> <strong>' + esc(v.name) + '</strong> — ' + esc(v.milestone || 'no milestone set'));
+      var rw = runwayMonths(v);
+      if (rw !== Infinity && rw < 6) items.push('<span class="pill risk">At risk</span> <strong>' + esc(v.name) + '</strong> — runway ' + rw.toFixed(1) + ' months (&lt;6)');
+    });
+    document.getElementById('ovAttention').innerHTML = items.length
+      ? '<ul style="margin:0;padding-left:1.1rem;display:grid;gap:0.4rem;">' + items.map(function (i) { return '<li>' + i + '</li>'; }).join('') + '</ul>'
+      : '<p style="margin:0;color:var(--ink-2)">Nothing flagged. Blocked ventures, at-risk statuses, and runways under 6 months appear here.</p>';
+  }
+
+  // ---------- render: ventures ----------
+  function renderVentures() {
+    var el = document.getElementById('ventureTable');
+    if (!state.ventures.length) {
+      el.innerHTML = '<div class="empty">No ventures registered yet.<br>Add the first one, or pick a strong candidate from the Opportunities tab and charter it at stage 0.<br><button class="primary" id="emptyAddVenture">+ Add venture</button></div>';
+      var b = document.getElementById('emptyAddVenture');
+      if (b) b.addEventListener('click', function () { openVentureDialog(null); });
+      return;
+    }
+    el.innerHTML = '<div class="table-scroll"><table><thead><tr>' +
+      '<th>Venture</th><th>Status</th><th>Progress</th><th>Structure</th><th>Owner</th><th class="num">Rev/mo</th><th class="num">Cost/mo</th><th class="num">Runway</th><th>Next milestone</th><th></th>' +
+      '</tr></thead><tbody>' +
+      state.ventures.map(function (v, i) {
+        var st = STATUS[v.status] || STATUS.ok;
+        var rw = runwayMonths(v);
+        var rwText = rw === Infinity ? '∞' : rw.toFixed(1) + ' mo';
+        var stageCells = '';
+        for (var s = 0; s <= 4; s++) stageCells += '<i class="' + (s <= (Number(v.stage) || 0) ? 'on' : '') + '"></i>';
+        return '<tr>' +
+          '<td><strong>' + esc(v.name) + '</strong>' + (v.notes ? '<div style="color:var(--muted);font-size:0.78rem">' + esc(v.notes) + '</div>' : '') + '</td>' +
+          '<td><span class="pill ' + st.cls + '">' + st.label + '</span></td>' +
+          '<td><div class="stagebar" data-tip="Stage ' + v.stage + ' — ' + STAGE_NAMES[Number(v.stage) || 0] + ' · automation rung ' + (v.rung || 1) + '">' + stageCells + '</div><div style="font-size:0.72rem;color:var(--muted)">' + STAGE_NAMES[Number(v.stage) || 0] + '</div></td>' +
+          '<td>' + (STRUCTURES[v.structure] || 'Internal') + '</td>' +
+          '<td>' + esc(v.owner || '—') + '</td>' +
+          '<td class="num">' + fmtMoney(v.revenue) + '</td>' +
+          '<td class="num">' + fmtMoney(v.cost) + '</td>' +
+          '<td class="num">' + rwText + '</td>' +
+          '<td style="color:var(--ink-2)">' + esc(v.milestone || '—') + '</td>' +
+          '<td><div class="row-actions"><button data-edit-venture="' + i + '">Edit</button><button class="danger-ghost" data-del-venture="' + i + '">Delete</button></div></td>' +
+          '</tr>';
+      }).join('') + '</tbody></table></div>';
+    el.querySelectorAll('[data-edit-venture]').forEach(function (b) {
+      b.addEventListener('click', function () { openVentureDialog(Number(b.getAttribute('data-edit-venture'))); });
+    });
+    el.querySelectorAll('[data-del-venture]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var i = Number(b.getAttribute('data-del-venture'));
+        if (confirm('Delete venture "' + state.ventures[i].name + '"? This only removes it from the console.')) {
+          state.ventures.splice(i, 1); save(); renderAll();
+        }
+      });
+    });
+    bindTips(el);
+  }
+
+  // ---------- render: opportunities ----------
+  function renderWeights() {
+    var el = document.getElementById('weightInputs');
+    el.innerHTML = FACTORS.map(function (f) {
+      return '<label>' + f.label + ' <span style="color:var(--muted)">(' + f.hint + ')</span>' +
+        '<input type="number" min="0" max="100" step="5" value="' + (state.weights[f.key] || 0) + '" data-weight="' + f.key + '"></label>';
+    }).join('');
+    el.querySelectorAll('[data-weight]').forEach(function (inp) {
+      inp.addEventListener('input', function () {
+        state.weights[inp.getAttribute('data-weight')] = Number(inp.value) || 0;
+        save(); renderOppBoard(); renderOverview(); updateWeightTotal();
+      });
+    });
+    updateWeightTotal();
+  }
+  function updateWeightTotal() {
+    var t = weightTotal();
+    document.getElementById('weightTotal').innerHTML = 'Weights total <strong>' + t + '</strong>' +
+      (t === 100 ? '' : ' — scores are normalized, so any total works; 100 keeps the numbers intuitive.');
+  }
+
+  function renderOppBoard() {
+    var ranked = rankedOpps();
+    // chart: single series, ranked
+    var chart = document.getElementById('oppChart');
+    chart.innerHTML = hbarChart(ranked.map(function (o) {
+      var sc = oppScore(o);
+      return {
+        label: o.name,
+        values: [{ v: sc, color: 'var(--accent)', tip: o.name + ' — ' + sc.toFixed(1) + '/100. ' + (o.note || '') }],
+        annot: sc.toFixed(1)
+      };
+    }), { max: 100, aria: 'Ranked weighted scores of candidate business opportunities, out of 100', labelW: 210 }) +
+    '<figcaption>Weighted score out of 100 under the current weights. Gridlines at 25/50/75/100.</figcaption>';
+    bindTips(chart);
+
+    // table
+    var head = FACTORS.map(function (f) { return '<th class="num" title="' + esc(f.label) + '">' + esc(f.label.split(' ')[0].slice(0, 6)) + '</th>'; }).join('');
+    document.getElementById('oppTable').innerHTML = '<table><thead><tr><th>#</th><th>Opportunity</th>' + head + '<th class="num">Score</th><th>Band</th><th></th></tr></thead><tbody>' +
+      ranked.map(function (o, i) {
+        var sc = oppScore(o), b = band(sc);
+        var idx = state.opportunities.indexOf(o);
+        return '<tr><td>' + (i + 1) + '</td>' +
+          '<td style="min-width:230px"><strong>' + esc(o.name) + '</strong>' + (o.note ? '<div style="color:var(--muted);font-size:0.78rem;max-width:320px">' + esc(o.note) + '</div>' : '') + '</td>' +
+          FACTORS.map(function (f) { return '<td class="num">' + (o.s[f.key] || 0) + '</td>'; }).join('') +
+          '<td class="num"><strong>' + sc.toFixed(1) + '</strong></td>' +
+          '<td><span class="band ' + b.cls + '">' + b.label + '</span></td>' +
+          '<td><div class="row-actions"><button data-edit-opp="' + idx + '">Edit</button><button class="danger-ghost" data-del-opp="' + idx + '">Delete</button></div></td></tr>';
+      }).join('') + '</tbody></table>';
+    var tbl = document.getElementById('oppTable');
+    tbl.querySelectorAll('[data-edit-opp]').forEach(function (b) {
+      b.addEventListener('click', function () { openOppDialog(Number(b.getAttribute('data-edit-opp'))); });
+    });
+    tbl.querySelectorAll('[data-del-opp]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var i = Number(b.getAttribute('data-del-opp'));
+        if (confirm('Delete opportunity "' + state.opportunities[i].name + '"?')) {
+          state.opportunities.splice(i, 1); save(); renderAll();
+        }
+      });
+    });
+  }
+
+  // ---------- render: financials ----------
+  function renderFinancials() {
+    var vs = state.ventures;
+    var totalRev = vs.reduce(function (t, v) { return t + (Number(v.revenue) || 0); }, 0);
+    var totalCost = vs.reduce(function (t, v) { return t + (Number(v.cost) || 0); }, 0);
+    var totalCash = vs.reduce(function (t, v) { return t + (Number(v.cash) || 0); }, 0);
+    var net = totalRev - totalCost;
+    var margin = totalRev > 0 ? (net / totalRev * 100) : 0;
+    document.getElementById('finTiles').innerHTML = [
+      { k: 'Monthly revenue', v: fmtMoney(totalRev), d: '' },
+      { k: 'Monthly cost', v: fmtMoney(totalCost), d: '' },
+      { k: 'Net / month', v: (net < 0 ? '−' : net > 0 ? '+' : '') + fmtMoney(Math.abs(net)), d: totalRev ? margin.toFixed(0) + '% net margin' : '', cls: net > 0 ? 'good' : (net < 0 ? 'bad' : '') },
+      { k: 'Cash reserves', v: fmtMoney(totalCash), d: 'sum of venture reserves' }
+    ].map(function (t) {
+      return '<div class="tile"><div class="k">' + esc(t.k) + '</div><div class="v ' + (t.cls || '') + '">' + esc(t.v) + '</div><div class="d">' + esc(t.d) + '</div></div>';
+    }).join('');
+
+    var chartEl = document.getElementById('finChart');
+    if (!vs.length) {
+      chartEl.innerHTML = '<div class="empty">Financials appear once ventures are registered with revenue and cost figures.</div>';
+      document.getElementById('finTable').innerHTML = '';
+      return;
+    }
+    chartEl.innerHTML =
+      '<div class="legend"><span><i style="background:var(--accent)"></i>Revenue</span><span><i style="background:var(--series-2)"></i>Cost</span></div>' +
+      '<figure class="chart">' + hbarChart(vs.map(function (v) {
+        return {
+          label: v.name,
+          values: [
+            { v: Number(v.revenue) || 0, color: 'var(--accent)', tip: v.name + ' revenue: ' + fmtMoney(v.revenue) + '/mo' },
+            { v: Number(v.cost) || 0, color: 'var(--series-2)', tip: v.name + ' cost: ' + fmtMoney(v.cost) + '/mo' }
+          ]
+        };
+      }), { aria: 'Monthly revenue and cost per venture', barH: 12, groupPad: 12 }) +
+      '<figcaption>Monthly figures as reported per venture. Blue = revenue, orange = cost.</figcaption></figure>';
+    bindTips(chartEl);
+
+    document.getElementById('finTable').innerHTML = '<table><thead><tr><th>Venture</th><th class="num">Revenue/mo</th><th class="num">Cost/mo</th><th class="num">Net/mo</th><th class="num">Cash reserve</th><th class="num">Runway</th></tr></thead><tbody>' +
+      vs.map(function (v) {
+        var n = (Number(v.revenue) || 0) - (Number(v.cost) || 0);
+        var rw = runwayMonths(v);
+        return '<tr><td><strong>' + esc(v.name) + '</strong></td>' +
+          '<td class="num">' + fmtMoney(v.revenue) + '</td>' +
+          '<td class="num">' + fmtMoney(v.cost) + '</td>' +
+          '<td class="num" style="color:' + (n > 0 ? 'var(--good-text)' : n < 0 ? 'var(--critical)' : 'var(--ink)') + '">' + (n > 0 ? '↑ +' : n < 0 ? '↓ −' : '') + fmtMoney(Math.abs(n)) + '</td>' +
+          '<td class="num">' + fmtMoney(v.cash) + '</td>' +
+          '<td class="num">' + (rw === Infinity ? '∞' : rw.toFixed(1) + ' mo') + '</td></tr>';
+      }).join('') +
+      '<tr><td><strong>Platform total</strong></td><td class="num"><strong>' + fmtMoney(totalRev) + '</strong></td><td class="num"><strong>' + fmtMoney(totalCost) + '</strong></td>' +
+      '<td class="num"><strong style="color:' + (net > 0 ? 'var(--good-text)' : net < 0 ? 'var(--critical)' : 'var(--ink)') + '">' + (net > 0 ? '↑ +' : net < 0 ? '↓ −' : '') + fmtMoney(Math.abs(net)) + '</strong></td>' +
+      '<td class="num"><strong>' + fmtMoney(totalCash) + '</strong></td><td></td></tr>' +
+      '</tbody></table>';
+  }
+
+  function renderAll() {
+    renderOverview(); renderVentures(); renderOppBoard(); renderFinancials();
+  }
+
+  // ---------- dialogs ----------
+  var ventureDialog = document.getElementById('ventureDialog');
+  var ventureForm = document.getElementById('ventureForm');
+  var editingVenture = null;
+  function openVentureDialog(index) {
+    editingVenture = index;
+    document.getElementById('ventureDialogTitle').textContent = index == null ? 'Add venture' : 'Edit venture';
+    var v = index == null
+      ? { name: '', owner: '', status: 'ok', stage: 0, structure: 'internal', revenue: 0, cost: 0, cash: 0, rung: 1, milestone: '', notes: '' }
+      : state.ventures[index];
+    ['name', 'owner', 'status', 'stage', 'structure', 'revenue', 'cost', 'cash', 'rung', 'milestone', 'notes'].forEach(function (k) {
+      ventureForm.elements[k].value = v[k] != null ? v[k] : '';
+    });
+    ventureDialog.showModal();
+  }
+  ventureForm.addEventListener('submit', function () {
+    var v = {};
+    ['name', 'owner', 'status', 'milestone', 'notes', 'structure'].forEach(function (k) { v[k] = ventureForm.elements[k].value.trim(); });
+    ['stage', 'revenue', 'cost', 'cash', 'rung'].forEach(function (k) { v[k] = Number(ventureForm.elements[k].value) || 0; });
+    if (!v.name) return;
+    if (editingVenture == null) state.ventures.push(v);
+    else state.ventures[editingVenture] = v;
+    save(); renderAll();
+  });
+  document.getElementById('ventureCancel').addEventListener('click', function () { ventureDialog.close(); });
+  document.getElementById('btnAddVenture').addEventListener('click', function () { openVentureDialog(null); });
+
+  var oppDialog = document.getElementById('oppDialog');
+  var oppForm = document.getElementById('oppForm');
+  var editingOpp = null;
+  document.getElementById('oppFactors').innerHTML = FACTORS.map(function (f) {
+    return '<label style="font-size:0.78rem;color:var(--ink-2);font-weight:550">' + f.label +
+      '<input name="f_' + f.key + '" type="number" min="1" max="5" step="1" value="3" style="font:inherit;width:100%;margin-top:0.2rem;padding:0.35rem 0.45rem;border:1px solid var(--border);border-radius:6px;background:var(--page);color:var(--ink)"></label>';
+  }).join('');
+  function openOppDialog(index) {
+    editingOpp = index;
+    document.getElementById('oppDialogTitle').textContent = index == null ? 'Add opportunity' : 'Edit opportunity';
+    var o = index == null ? { name: '', note: '', s: {} } : state.opportunities[index];
+    oppForm.elements.name.value = o.name || '';
+    oppForm.elements.note.value = o.note || '';
+    FACTORS.forEach(function (f) { oppForm.elements['f_' + f.key].value = o.s[f.key] != null ? o.s[f.key] : 3; });
+    oppDialog.showModal();
+  }
+  oppForm.addEventListener('submit', function () {
+    var o = { name: oppForm.elements.name.value.trim(), note: oppForm.elements.note.value.trim(), s: {} };
+    if (!o.name) return;
+    FACTORS.forEach(function (f) {
+      o.s[f.key] = Math.max(1, Math.min(5, Number(oppForm.elements['f_' + f.key].value) || 3));
+    });
+    if (editingOpp == null) { o.id = 'custom-' + Math.random().toString(36).slice(2, 8); state.opportunities.push(o); }
+    else { o.id = state.opportunities[editingOpp].id; state.opportunities[editingOpp] = o; }
+    save(); renderAll();
+  });
+  document.getElementById('oppCancel').addEventListener('click', function () { oppDialog.close(); });
+  document.getElementById('btnAddOpp').addEventListener('click', function () { openOppDialog(null); });
+  document.getElementById('btnResetWeights').addEventListener('click', function () {
+    state.weights = Object.assign({}, DEFAULT_WEIGHTS);
+    save(); renderWeights(); renderAll();
+  });
+
+  // ---------- tabs ----------
+  document.querySelectorAll('.tab').forEach(function (t) {
+    t.addEventListener('click', function () {
+      document.querySelectorAll('.tab').forEach(function (x) { x.setAttribute('aria-selected', 'false'); });
+      document.querySelectorAll('.panel').forEach(function (p) { p.classList.remove('active'); });
+      t.setAttribute('aria-selected', 'true');
+      document.getElementById('panel-' + t.getAttribute('data-panel')).classList.add('active');
+    });
+  });
+
+  // ---------- data controls ----------
+  document.getElementById('btnExport').addEventListener('click', function () {
+    var blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'externalapps-console-data.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+  document.getElementById('btnImport').addEventListener('click', function () {
+    document.getElementById('fileImport').click();
+  });
+  document.getElementById('fileImport').addEventListener('change', function (ev) {
+    var file = ev.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var parsed = JSON.parse(reader.result);
+        if (!parsed || !parsed.opportunities || !parsed.weights) throw new Error('missing fields');
+        state = parsed;
+        if (!state.ventures) state.ventures = [];
+        save(); renderWeights(); renderAll();
+      } catch (e) {
+        alert('Could not import: the file is not a console JSON export.');
+      }
+      ev.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+  document.getElementById('btnReset').addEventListener('click', function () {
+    if (confirm('Reset the console to seed data? Local ventures and edits in this browser will be lost. Export first if you want to keep them.')) {
+      state = seedState();
+      save(); renderWeights(); renderAll();
+    }
+  });
+
+  renderWeights();
+  renderAll();
+})();
+</script>
