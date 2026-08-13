@@ -13,6 +13,7 @@
 |---|---|---|
 | 2026-08-12 | Chartered from opportunity scoreboard (#1, 85/100) | Top-ranked candidate; cash-flow opener for the platform |
 | 2026-08-12 | Marketplace-first, own storefront later | Validate demand where buyers already are before paying for traffic |
+| 2026-08-12 | Niche: self-managing small landlords (1–10 units) | Money-adjacent (premium pricing, $50–$199 for calculators vs $5 for generic planners); proven marketplace demand; utility beats design so production is fast; same audience feeds the AI service (owner reports) and micro-SaaS discovery (rent/maintenance workflow) |
 
 ## Role map (Pillar 4)
 
