@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IEP Studio — Deaf Education (Ontario)</title>
+<meta name="description" content="Visual-first PWA for teachers of Deaf and hard-of-hearing students: Ontario IEPs, adaptive interactive sessions, standardized reporting, and PDSB referral exchange.">
+<meta name="theme-color" content="#1a3a5c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="app-header" role="banner">
+  <div class="brand">
+    <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true"><use href="icons/icon.svg#hand"></use></svg>
+    <div>
+      <h1>IEP Studio</h1>
+      <p class="brand-sub">Deaf Education · Ontario</p>
+    </div>
+  </div>
+  <div class="header-status">
+    <span id="net-status" class="pill pill-ok" role="status">● Online</span>
+    <button id="install-btn" class="btn btn-ghost" hidden>Install app</button>
+  </div>
+</header>
+
+<nav class="app-nav" role="navigation" aria-label="Main">
+  <button class="nav-btn" data-view="dashboard" aria-current="page">
+    <span class="nav-icon" aria-hidden="true">🏠</span><span>Home</span>
+  </button>
+  <button class="nav-btn" data-view="students">
+    <span class="nav-icon" aria-hidden="true">🧑‍🎓</span><span>Students</span>
+  </button>
+  <button class="nav-btn" data-view="sessions">
+    <span class="nav-icon" aria-hidden="true">🎯</span><span>Sessions</span>
+  </button>
+  <button class="nav-btn" data-view="questions">
+    <span class="nav-icon" aria-hidden="true">❓</span><span>Questions</span>
+  </button>
+  <button class="nav-btn" data-view="reports">
+    <span class="nav-icon" aria-hidden="true">📊</span><span>Reports</span>
+  </button>
+  <button class="nav-btn" data-view="pdsb">
+    <span class="nav-icon" aria-hidden="true">🏛️</span><span>PDSB</span>
+  </button>
+  <button class="nav-btn" data-view="settings">
+    <span class="nav-icon" aria-hidden="true">⚙️</span><span>Settings</span>
+  </button>
+</nav>
+
+<main id="main" class="app-main" role="main" tabindex="-1">
+  <!-- Views are rendered here by app.js -->
+</main>
+
+<!-- Visual (non-audio) notification banner: flashes to attract attention -->
+<div id="visual-alert" class="visual-alert" role="alert" aria-live="assertive" hidden></div>
+
+<!-- Modal shell -->
+<div id="modal-root" class="modal-root" hidden>
+  <div class="modal-backdrop" data-close-modal></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head">
+      <h2 id="modal-title"></h2>
+      <button class="btn btn-ghost modal-close" data-close-modal aria-label="Close dialog">✕</button>
+    </div>
+    <div id="modal-body" class="modal-body"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

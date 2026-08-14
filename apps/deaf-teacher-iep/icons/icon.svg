@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- "ILY" (I-love-you) handshape — a widely recognized Deaf community symbol -->
+  <g id="hand">
+    <rect width="64" height="64" rx="14" fill="#1a3a5c"/>
+    <g fill="#ffffff">
+      <!-- palm -->
+      <rect x="24" y="30" width="18" height="18" rx="6"/>
+      <!-- thumb (out to the side) -->
+      <rect x="16" y="32" width="10" height="7" rx="3.5" transform="rotate(-25 21 35.5)"/>
+      <!-- index finger (up) -->
+      <rect x="26" y="12" width="6" height="22" rx="3"/>
+      <!-- pinky (up) -->
+      <rect x="38" y="14" width="6" height="20" rx="3"/>
+    </g>
+    <!-- open book under the hand: teaching -->
+    <path d="M14 52c6-3 12-3 18 0 6-3 12-3 18 0v4c-6-3-12-3-18 0-6-3-12-3-18 0z" fill="#f59e0b"/>
+  </g>
+</svg>
