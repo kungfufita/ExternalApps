@@ -209,9 +209,14 @@ function visualAlert(message, kind = "ok") {
 
 function openModal(title, bodyHTML, onMount) {
   $("#modal-title").textContent = title;
-  $("#modal-body").innerHTML = bodyHTML;
+  /* Fresh clone of the body node so listeners from a previous modal never
+     stack with this one's (same rationale as navigate()). */
+  const oldBody = $("#modal-body");
+  const body = oldBody.cloneNode(false);
+  oldBody.replaceWith(body);
+  body.innerHTML = bodyHTML;
   $("#modal-root").hidden = false;
-  if (onMount) onMount($("#modal-body"));
+  if (onMount) onMount(body);
   $(".modal-card").focus?.();
 }
 function closeModal() { $("#modal-root").hidden = true; $("#modal-body").innerHTML = ""; }
@@ -321,7 +326,13 @@ async function navigate(view, params = {}) {
   currentView = view;
   $$(".nav-btn").forEach(b =>
     b.setAttribute("aria-current", b.dataset.view === view ? "page" : "false"));
-  const main = $("#main");
+  /* Swap #main for a fresh clone: views attach delegated listeners to it, and
+     replacing the node drops every stale listener from the previous render.
+     Without this, listeners stack across renders (e.g., one click on a delete
+     button pops one confirm dialog per prior visit to the view). */
+  const old = $("#main");
+  const main = old.cloneNode(false);
+  old.replaceWith(main);
   main.innerHTML = "<p>Loading…</p>";
   await Views[view](main, params);
   main.focus();
@@ -628,6 +639,24 @@ async function renderStudentEditor(main, id) {
     }
   });
 
+  /* Enter in a chip/intake input adds the item instead of submitting the form. */
+  main.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    const t = e.target;
+    if (t.id === "new-intake-q") {
+      e.preventDefault();
+      $("#add-intake").click();
+      return;
+    }
+    if (t.id && t.id.endsWith("-input")) {
+      const listId = t.id.slice(0, -"-input".length);
+      if (chipLists[listId]) {
+        e.preventDefault();
+        if (t.value.trim()) { chipLists[listId].push(t.value.trim()); t.value = ""; redrawChips(listId); }
+      }
+    }
+  });
+
   ["instructional", "environmental", "assessment"].forEach(kind => {
     $(`#acc-${kind}-suggest`).onchange = (e) => {
       if (e.target.value) {
@@ -756,7 +785,9 @@ async function renderStudentEditor(main, id) {
   async function saveDraftAndRerender() {
     s.updatedAt = today();
     await DB.put("students", s);
-    renderStudentEditor(main, s.id);
+    /* Go through navigate() so the editor re-renders on a fresh #main node —
+       calling renderStudentEditor(main, …) directly would stack listeners. */
+    navigate("students", { edit: s.id });
   }
 
   $("#student-form").onsubmit = async (e) => {

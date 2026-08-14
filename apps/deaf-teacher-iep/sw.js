@@ -2,7 +2,7 @@
    Cache-first for the shell; network passthrough for everything else
    (e.g., teacher-linked ASL video URLs and images are never cached here). */
 
-const CACHE = "iep-studio-v1";
+const CACHE = "iep-studio-v2";
 const SHELL = [
   "./",
   "./index.html",
