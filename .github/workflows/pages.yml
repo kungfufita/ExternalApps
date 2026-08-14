@@ -1,9 +1,10 @@
 name: Deploy IEP Studio to GitHub Pages
 
-# Publishes apps/deaf-teacher-iep as the GitHub Pages site.
-# Pages requires the repository to be public (or a paid plan for private
-# repos); until then this workflow will fail at the configure step, which
-# is expected and harmless.
+# Publishes apps/deaf-teacher-iep by syncing it to the gh-pages branch,
+# which GitHub Pages serves (classic branch-based Pages). The
+# actions/deploy-pages route is not used because this repo's workflow
+# token cannot create the Pages site ("Resource not accessible by
+# integration"); pushing gh-pages needs only contents: write.
 
 on:
   push:
@@ -14,9 +15,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
@@ -24,21 +23,15 @@ concurrency:
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Configure Pages (auto-enables on first run)
-        uses: actions/configure-pages@v5
+      - name: Publish app to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          enablement: true
-      - name: Upload app as Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: apps/deaf-teacher-iep
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: apps/deaf-teacher-iep
+          publish_branch: gh-pages
+          enable_jekyll: false
+          commit_message: "Publish IEP Studio from"
