@@ -13,7 +13,7 @@
 
 ## Now / Next / Later
 
-- **Now:** Niche picked (self-managing small landlords, 1–10 units). Ship product #1 — **Rental Property Deal Analyzer** (buy/hold ROI calculator, Google Sheets + Excel) — to a marketplace within 2 weeks.
+- **Now:** Product #1 — **Rental Property Deal Analyzer** — is built and verified (`products/rental-property-deal-analyzer/`). List it on a marketplace (Etsy and/or Gumroad) with the drafted listing copy.
 - **Next:** Products #2 and #3 in the same niche: **Landlord Command Center** (rent roll + expense + maintenance tracker) and **Tax-Season Landlord Pack** (Schedule-E-ready expense categorizer). Measure which listing converts and why.
 - **Later:** Own storefront + email list once 25-sale validation passes; bundle the three into a premium kit; state-specific lease checklists as repeatable follow-ons; feed audience from the (parked) newsletter play.
 
@@ -35,3 +35,4 @@
 |---|---|
 | 2026-08-12 | Desk research: discoverability is the real risk — one product proves nothing, a catalog with a channel does (research/opportunities.md) |
 | 2026-08-12 | Niche research: rental-property calculators command $50–$199+ on marketplaces while generic planners/budget sheets are saturated at ~$5; money-adjacent utility niches out-earn lifestyle niches |
+| 2026-08-13 | Product #1 built in a day: 4-tab analyzer (inputs → cash flow/cap/CoC/DSCR verdicts, 5-deal comparison, amortization), all formulas verified error-free with metrics matching hand calculations |

@@ -54,6 +54,12 @@ ExternalApps/
 │   └── 06-opportunity-scoring.md
 ├── research/                Opportunity research — scored candidate businesses
 │   └── opportunities.md
+├── management/              Business-level governance and tracking
+│   ├── README.md            Teams, ownership (BC sole proprietorship), succession
+│   ├── status.md            Executive summary + status board
+│   ├── business-registration.md   BC registration + succession checklist
+│   ├── naming-and-domains.md      Name candidates, domain, email & web plan
+│   └── projects/            Project register + one-pager template
 ├── console/                 Interactive platform console (two interfaces, shared data)
 │   ├── index.html           Monitor interface — sidebar layout, tables, charts
 │   └── mobile.html          Phone interface — bottom nav, card lists, touch-first
