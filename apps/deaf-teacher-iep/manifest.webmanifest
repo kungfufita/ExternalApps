@@ -1,0 +1,27 @@
+{
+  "name": "IEP Studio — Deaf Education (Ontario)",
+  "short_name": "IEP Studio",
+  "description": "Visual-first planning, adaptive interactive sessions, Ontario IEP reporting, and PDSB referral packages for teachers of Deaf and hard-of-hearing students.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5f7fa",
+  "theme_color": "#1a3a5c",
+  "lang": "en-CA",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
