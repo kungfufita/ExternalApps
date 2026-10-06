@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mindsight</title>
+<meta name="description" content="A private, offline-first companion for practicing mindsight: insight, empathy, and integration.">
+<meta name="theme-color" content="#2f4b6e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="app-header">
+  <h1>Mindsight</h1>
+  <p id="tagline">Insight · Empathy · Integration</p>
+</header>
+<main id="main" tabindex="-1"></main>
+<nav class="app-nav" aria-label="Main">
+  <button data-view="home" aria-current="page"><span aria-hidden="true">◎</span>Home</button>
+  <button data-view="checkin"><span aria-hidden="true">✎</span>Check-in</button>
+  <button data-view="wheel"><span aria-hidden="true">☸</span>Wheel</button>
+  <button data-view="empathy"><span aria-hidden="true">❖</span>Empathy</button>
+  <button data-view="river"><span aria-hidden="true">≈</span>River</button>
+</nav>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>

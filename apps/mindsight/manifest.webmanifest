@@ -1,0 +1,16 @@
+{
+  "name": "Mindsight — See Your Mind, Feel Others, Integrate",
+  "short_name": "Mindsight",
+  "description": "A private, offline-first companion for practicing mindsight: insight, empathy, and integration.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f1ec",
+  "theme_color": "#2f4b6e",
+  "lang": "en",
+  "categories": ["health", "lifestyle"],
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
