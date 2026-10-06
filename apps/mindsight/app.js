@@ -7,8 +7,16 @@ const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-let mem = { entries: [], practice: [], river: [] };
-const load = () => { try { return { ...mem, ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch { return mem; } };
+const fresh = () => ({ entries: [], practice: [], river: [] });
+const load = () => {
+  const db = fresh();
+  try {
+    const raw = JSON.parse(localStorage.getItem(KEY) || "{}");
+    // Only accept arrays so a corrupt or old-schema value can't blank the app.
+    for (const k of Object.keys(db)) if (Array.isArray(raw?.[k])) db[k] = raw[k];
+  } catch { /* corrupt storage: start fresh */ }
+  return db;
+};
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch { /* storage blocked: stay in-memory */ } };
 const db = load();
 
@@ -49,7 +57,8 @@ const DOMAINS = [
 const RIVER_HINTS = {
   chaos: "Try the Wheel practice, with a long stay in the hub, to build stability.",
   rigid: "Try a Check-in; naming sensations and feelings can soften rigidity and let in more flexibility.",
-  flow: "Notice what supports this flow, and keep what's working."
+  flow: "Notice what supports this flow, and keep what's working.",
+  both: "Both banks are pulling. A Check-in to name what's here, then a short Wheel practice, can help you find the current."
 };
 
 /* ---------- state ---------- */
@@ -149,7 +158,9 @@ const wire = {
     $("#export").onclick = () => {
       const a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([JSON.stringify(db, null, 2)], { type: "application/json" }));
-      a.download = `mindsight-${dayKey()}.json`; a.click(); URL.revokeObjectURL(a.href);
+      a.download = `mindsight-${dayKey()}.json`; document.body.appendChild(a); a.click();
+      // Safari/Android start the download asynchronously; revoke after it has begun.
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
     };
     $("#wipe").onclick = () => {
       if (!confirm("Delete all Mindsight data on this device? This cannot be undone.")) return;
@@ -188,8 +199,10 @@ const wire = {
       const n = { chaos: 0, flow: 0, rigid: 0 }; Object.values(vals).forEach(k => n[k]++);
       const total = n.chaos + n.flow + n.rigid;
       if (!total) { $("#river-sum").innerHTML = '<p class="muted" style="margin:0">Choose a state for each domain to see your river.</p>'; return; }
-      const dom = n.chaos >= n.rigid ? "chaos" : "rigid";
-      const hint = n.chaos === 0 && n.rigid === 0 ? RIVER_HINTS.flow : RIVER_HINTS[dom];
+      let hint;
+      if (n.chaos === 0 && n.rigid === 0) hint = RIVER_HINTS.flow;
+      else if (n.chaos === n.rigid) hint = RIVER_HINTS.both;
+      else hint = RIVER_HINTS[n.chaos > n.rigid ? "chaos" : "rigid"];
       $("#river-sum").innerHTML = `<div class="river-bar" aria-hidden="true"><i style="width:${n.chaos / total * 100}%"></i><i style="width:${n.flow / total * 100}%"></i><i style="width:${n.rigid / total * 100}%"></i></div>
         <p style="margin:8px 0 0">${n.flow} flowing · ${n.chaos} chaotic · ${n.rigid} rigid. <span class="muted">${hint}</span></p>`;
     };
@@ -198,7 +211,10 @@ const wire = {
       seg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
       summarize();
     }));
-    $("#river-save").onclick = () => { db.river.push({ t: Date.now(), vals: { ...vals } }); save(); toast("Snapshot saved."); };
+    $("#river-save").onclick = () => {
+      if (!Object.keys(vals).length) return toast("Choose at least one domain first.");
+      db.river.push({ t: Date.now(), vals: { ...vals } }); save(); toast("Snapshot saved.");
+    };
     summarize();
   }
 };
@@ -215,14 +231,17 @@ function setGuide(step) {
 
 function startWheel() {
   const per = +$("#len").value, total = per * WHEEL_STEPS.length;
-  let i = 0, elapsed = 0;
+  let i = 0;
+  const started = Date.now();
   $("#w-start").hidden = true; $("#w-stop").hidden = false; $("#len").disabled = true;
   setGuide(WHEEL_STEPS[0]);
-  wheelTimer = { per, started: Date.now(), id: setInterval(() => {
-    elapsed++;
+  // Progress is derived from the wall clock, not tick counts, so a throttled
+  // timer (screen lock, background tab) can't stall the guide while time passes.
+  wheelTimer = { per, started, total, id: setInterval(() => {
+    const elapsed = (Date.now() - started) / 1000;
     $("#bar").style.width = `${Math.min(100, elapsed / total * 100)}%`;
     if (elapsed >= total) return stopWheel(false, true);
-    const n = Math.floor(elapsed / per);
+    const n = Math.min(WHEEL_STEPS.length - 1, Math.floor(elapsed / per));
     if (n !== i) { i = n; setGuide(WHEEL_STEPS[i]); }
   }, 1000) };
 }
@@ -230,7 +249,8 @@ function startWheel() {
 function stopWheel(silent, completed = false) {
   if (!wheelTimer) return;
   clearInterval(wheelTimer.id);
-  const seconds = Math.round((Date.now() - wheelTimer.started) / 1000);
+  // Cap at the session length so a stalled timer can't inflate practice minutes.
+  const seconds = Math.min(wheelTimer.total, Math.round((Date.now() - wheelTimer.started) / 1000));
   wheelTimer = null;
   if (seconds >= 15) { db.practice.push({ t: Date.now(), day: dayKey(), seconds }); save(); }
   if (silent) return;
