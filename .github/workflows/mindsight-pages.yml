@@ -1,0 +1,37 @@
+name: Deploy Mindsight to GitHub Pages
+
+# Publishes apps/mindsight to the mindsight/ folder of the gh-pages branch
+# (served at <pages-url>/mindsight/). destination_dir limits the sync to that
+# folder, so IEP Studio at the branch root is left untouched. Shares the
+# "pages" concurrency group with pages.yml so the two never push at once.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/mindsight/**"
+      - ".github/workflows/mindsight-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Publish app to gh-pages/mindsight
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: apps/mindsight
+          destination_dir: mindsight
+          publish_branch: gh-pages
+          enable_jekyll: false
+          commit_message: "Publish Mindsight from"

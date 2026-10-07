@@ -34,4 +34,6 @@ jobs:
           publish_dir: apps/deaf-teacher-iep
           publish_branch: gh-pages
           enable_jekyll: false
+          # Keep other apps' folders (e.g. mindsight/) that live on gh-pages.
+          keep_files: true
           commit_message: "Publish IEP Studio from"
