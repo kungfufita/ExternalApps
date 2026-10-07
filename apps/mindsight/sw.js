@@ -2,7 +2,7 @@
    Shell files are served from cache immediately, then refreshed from the
    network in the background (stale-while-revalidate), so installed users
    pick up new deploys on their next visit. */
-const CACHE = "mindsight-v2";
+const CACHE = "mindsight-v3";
 const SHELL = ["./", "./index.html", "./styles.css", "./app.js", "./manifest.webmanifest", "./icons/icon.svg", "./icons/icon-192.png", "./icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {

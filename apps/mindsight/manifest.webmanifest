@@ -1,7 +1,7 @@
 {
-  "name": "Mindsight \u2014 See Your Mind, Feel Others, Integrate",
+  "name": "Mindsight \u2014 Blindfold-sight trainer",
   "short_name": "Mindsight",
-  "description": "A private, offline-first companion for practicing mindsight: insight, empathy, and integration.",
+  "description": "Staged blindfold-sight training with device-blinded testing and honest statistics.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

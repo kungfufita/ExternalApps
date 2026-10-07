@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mindsight</title>
-<meta name="description" content="A private, offline-first companion for practicing mindsight: insight, empathy, and integration.">
+<meta name="description" content="Blindfold-sight training platform: staged practice (light, colour, shape, symbol, word) with honest, device-blinded testing and statistics.">
 <meta name="theme-color" content="#2f4b6e">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
@@ -15,16 +15,17 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="app-header">
   <h1>Mindsight</h1>
-  <p id="tagline">Insight · Empathy · Integration</p>
+  <p id="tagline">Blindfold-sight training · measured honestly</p>
 </header>
 <main id="main" tabindex="-1"></main>
 <nav class="app-nav" aria-label="Main">
-  <button data-view="home" aria-current="page"><span aria-hidden="true">◎</span>Home</button>
-  <button data-view="checkin"><span aria-hidden="true">✎</span>Check-in</button>
-  <button data-view="wheel"><span aria-hidden="true">☸</span>Wheel</button>
-  <button data-view="empathy"><span aria-hidden="true">❖</span>Empathy</button>
-  <button data-view="river"><span aria-hidden="true">≈</span>River</button>
+  <button data-view="home" aria-current="page"><span aria-hidden="true">◎</span>Today</button>
+  <button data-view="train"><span aria-hidden="true">▶</span>Train</button>
+  <button data-view="test"><span aria-hidden="true">✓</span>Test</button>
+  <button data-view="progress"><span aria-hidden="true">↗</span>Progress</button>
+  <button data-view="learn"><span aria-hidden="true">?</span>Learn</button>
 </nav>
+<div id="stage" hidden></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="app.js"></script>
 </body>
