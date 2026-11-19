@@ -57,6 +57,9 @@ ExternalApps/
 ├── console/                 Interactive platform console (two interfaces, shared data)
 │   ├── index.html           Monitor interface — sidebar layout, tables, charts
 │   └── mobile.html          Phone interface — bottom nav, card lists, touch-first
+├── apps/                    Shipped products — static PWAs published to GitHub Pages
+│   ├── deaf-teacher-iep/    IEP Studio (Deaf education, Ontario)        → /
+│   └── pathworking/         Pathworking — 3D Tree of Life               → /pathworking/
 └── ventures/                One directory per avenue of business
     ├── README.md            Venture registry — the live index of all ventures
     └── _template/           Copy this to start a new venture

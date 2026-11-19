@@ -1,0 +1,19 @@
+{
+  "name": "Pathworking — Tree of Life",
+  "short_name": "Pathworking",
+  "description": "A 3D Tree of Life for Kabbalistic pathworking: the Lightning Flash that opens the channels, the Serpent of Wisdom ascending the 22 paths, and the 72 Names of the Shem HaMephorash.",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#070912",
+  "theme_color": "#070912",
+  "lang": "en",
+  "categories": ["education", "lifestyle"],
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" },
+    { "src": "icons/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}

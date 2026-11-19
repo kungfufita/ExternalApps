@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="35%" r="75%">
+      <stop offset="0" stop-color="#1b1f4a"/><stop offset="1" stop-color="#070912"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" fill="url(#bg)"/>
+  <g transform="translate(12 10) scale(0.64)">
+    <g stroke="#c9a227" stroke-width="1.6" fill="none" stroke-linecap="round">
+      <path d="M32 6 L46 13 L18 13 Z M32 6 L32 33 M46 13 L46 27 L18 27 L18 13 M46 13 L32 33 L18 13 M46 27 L32 33 L18 27 M46 27 L46 41 L18 41 L18 27 M46 27 L32 47 L18 27 M32 33 L46 41 M32 33 L18 41 M32 33 L32 47 M46 41 L32 58 M18 41 L32 58 M32 47 L32 58 M46 41 L32 47 L18 41"/>
+    </g>
+    <g fill="#f2d14b" stroke="#fff7d6" stroke-width="0.9">
+      <circle cx="32" cy="6" r="3.6" fill="#ffffff"/>
+      <circle cx="46" cy="13" r="3.4"/><circle cx="18" cy="13" r="3.4"/>
+      <circle cx="46" cy="27" r="3.4"/><circle cx="18" cy="27" r="3.4"/>
+      <circle cx="32" cy="33" r="3.8" fill="#ffe066"/>
+      <circle cx="46" cy="41" r="3.4"/><circle cx="18" cy="41" r="3.4"/>
+      <circle cx="32" cy="47" r="3.4"/><circle cx="32" cy="58" r="3.4" fill="#8a7a3a"/>
+    </g>
+  </g>
+</svg>
