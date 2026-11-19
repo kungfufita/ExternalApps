@@ -1,16 +1,20 @@
-name: Deploy IEP Studio to GitHub Pages
+name: Deploy apps to GitHub Pages
 
-# Publishes apps/deaf-teacher-iep by syncing it to the gh-pages branch,
-# which GitHub Pages serves (classic branch-based Pages). The
-# actions/deploy-pages route is not used because this repo's workflow
-# token cannot create the Pages site ("Resource not accessible by
-# integration"); pushing gh-pages needs only contents: write.
+# Publishes the static apps under apps/ by syncing a staged site to the gh-pages
+# branch, which GitHub Pages serves (classic branch-based Pages). The
+# actions/deploy-pages route is not used because this repo's workflow token
+# cannot create the Pages site ("Resource not accessible by integration");
+# pushing gh-pages needs only contents: write.
+#
+# Site layout (https://kungfufita.github.io/ExternalApps/):
+#   /             IEP Studio        (apps/deaf-teacher-iep)  — kept at the root so existing links work
+#   /pathworking/ Pathworking       (apps/pathworking)
 
 on:
   push:
     branches: [main]
     paths:
-      - "apps/deaf-teacher-iep/**"
+      - "apps/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -27,11 +31,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Publish app to gh-pages
+      - name: Stage site
+        run: |
+          rm -rf _site
+          mkdir -p _site
+          cp -R apps/deaf-teacher-iep/. _site/
+          mkdir -p _site/pathworking
+          cp -R apps/pathworking/. _site/pathworking/
+          touch _site/.nojekyll
+          find _site -maxdepth 2 -type d | sort
+      - name: Publish site to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: apps/deaf-teacher-iep
+          publish_dir: _site
           publish_branch: gh-pages
           enable_jekyll: false
-          commit_message: "Publish IEP Studio from"
+          commit_message: "Publish apps from"
