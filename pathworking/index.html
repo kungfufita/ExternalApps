@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pathworking — Tree of Life</title>
+<meta name="description" content="A 3D Tree of Life for Kabbalistic pathworking: the Lightning Flash descent that opens the channels, the Serpent of Wisdom ascending the 22 paths, and the 72 Names of the Shem HaMephorash.">
+<meta name="theme-color" content="#070912">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pathworking">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#panel">Skip to controls</a>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true"><use href="icons/icon.svg#tree"></use></svg>
+    <div>
+      <h1>Pathworking</h1>
+      <p class="brand-sub">Tree of Life · עץ חיים</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button id="share-btn" class="btn btn-ghost" type="button" title="Share this app">
+      <span aria-hidden="true">⇪</span> Share
+    </button>
+    <button id="install-btn" class="btn btn-gold" type="button" hidden>Install</button>
+  </div>
+</header>
+
+<main class="stage">
+  <div id="scene" class="scene" aria-live="off"></div>
+
+  <div class="hud" aria-live="polite">
+    <div id="hud-title" class="hud-title">Tree of Life</div>
+    <div id="hud-sub" class="hud-sub">Drag to rotate · pinch or scroll to zoom · tap a sphere, path or name</div>
+  </div>
+
+  <div class="scene-tools">
+    <button id="reset-view" class="icon-btn" type="button" title="Reset view" aria-label="Reset view">⟲</button>
+    <button id="toggle-panel" class="icon-btn" type="button" title="Show or hide controls" aria-label="Show or hide controls" aria-expanded="true">☰</button>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <aside id="panel" class="panel" aria-label="Controls">
+    <div class="panel-grip" aria-hidden="true"></div>
+    <nav class="tabs" role="tablist" aria-label="Modes">
+      <button class="tab" role="tab" data-tab="tree" aria-selected="true">Tree</button>
+      <button class="tab" role="tab" data-tab="descent" aria-selected="false">Descent</button>
+      <button class="tab" role="tab" data-tab="ascent" aria-selected="false">Ascent</button>
+      <button class="tab" role="tab" data-tab="names" aria-selected="false">72 Names</button>
+      <button class="tab" role="tab" data-tab="guide" aria-selected="false">Guide</button>
+    </nav>
+
+    <div class="panel-body">
+      <!-- TREE -->
+      <section class="tabpanel" data-tab="tree" role="tabpanel">
+        <p class="lead">Explore the ten Sephiroth and the twenty-two paths. Tap anything in the model for its correspondences.</p>
+        <div class="toggles">
+          <label class="toggle"><input type="checkbox" data-opt="labels" checked> Sephiroth labels</label>
+          <label class="toggle"><input type="checkbox" data-opt="pathLabels" checked> Path letters</label>
+          <label class="toggle"><input type="checkbox" data-opt="daath" checked> Daath (hidden Sephirah)</label>
+          <label class="toggle"><input type="checkbox" data-opt="worlds" checked> Four Worlds</label>
+          <label class="toggle"><input type="checkbox" data-opt="pillars" checked> Three Pillars</label>
+          <label class="toggle"><input type="checkbox" data-opt="ring" checked> Shem HaMephorash ring</label>
+          <label class="toggle"><input type="checkbox" data-opt="autoRotate"> Slow rotation</label>
+        </div>
+        <label class="field">Ring placement
+          <select id="ring-place">
+            <option value="base">Beneath Malkuth</option>
+            <option value="encircle">Encircling the Tree</option>
+            <option value="crown">Above Kether</option>
+          </select>
+        </label>
+        <h2 class="h">Sephiroth</h2>
+        <div id="seph-list" class="chip-grid"></div>
+        <h2 class="h">Paths</h2>
+        <div id="path-list" class="chip-grid chip-grid-dense"></div>
+        <div id="detail" class="card" hidden></div>
+      </section>
+
+      <!-- DESCENT -->
+      <section class="tabpanel" data-tab="descent" role="tabpanel" hidden>
+        <p class="lead">The Light descends from the Source and opens each channel in turn. Follow it with your breath, resting at each Sephirah.</p>
+        <label class="field">Sequence
+          <select id="descent-preset">
+            <option value="flash">Lightning Flash — Kether to Malkuth through all ten</option>
+            <option value="middle">Middle Pillar — down the Pillar of Equilibrium</option>
+          </select>
+        </label>
+        <div class="transport">
+          <button class="btn" data-act="d-restart" type="button" title="Restart">⏮</button>
+          <button class="btn" data-act="d-prev" type="button" title="Previous Sephirah">◀</button>
+          <button class="btn btn-gold btn-wide" data-act="d-play" type="button">▶ Begin</button>
+          <button class="btn" data-act="d-next" type="button" title="Next Sephirah">▶|</button>
+        </div>
+        <div class="row2">
+          <label class="field">Travel (s)<input id="d-travel" type="number" min="0.5" max="30" step="0.5" value="3"></label>
+          <label class="field">Rest at each (s)<input id="d-hold" type="number" min="0" max="300" step="1" value="8"></label>
+        </div>
+        <div class="progress"><div id="d-bar" class="bar"></div></div>
+        <ol id="d-steps" class="steps"></ol>
+        <div id="d-detail" class="card"></div>
+      </section>
+
+      <!-- ASCENT -->
+      <section class="tabpanel" data-tab="ascent" role="tabpanel" hidden>
+        <p class="lead">The Serpent of Wisdom (Nechushtan) climbs from Malkuth to Kether, touching each of the twenty-two paths in order from the 32nd to the 11th.</p>
+        <div class="row2">
+          <label class="field">Form
+            <select id="serpent-kind">
+              <option value="serpent">Serpent — green &amp; gold</option>
+              <option value="dragon">Dragon — crimson &amp; gold</option>
+            </select>
+          </label>
+          <label class="field">Seconds per path<input id="s-travel" type="number" min="1" max="120" step="1" value="6"></label>
+        </div>
+        <div class="transport">
+          <button class="btn" data-act="s-restart" type="button" title="Restart">⏮</button>
+          <button class="btn" data-act="s-prev" type="button" title="Previous path">◀</button>
+          <button class="btn btn-gold btn-wide" data-act="s-play" type="button">▶ Begin ascent</button>
+          <button class="btn" data-act="s-next" type="button" title="Next path">▶|</button>
+        </div>
+        <div class="progress"><div id="s-bar" class="bar bar-green"></div></div>
+        <div id="s-detail" class="card"></div>
+        <ol id="s-steps" class="steps steps-compact"></ol>
+      </section>
+
+      <!-- NAMES -->
+      <section class="tabpanel" data-tab="names" role="tabpanel" hidden>
+        <p class="lead">The Shem HaMephorash — the 72 Names — is drawn from Exodus 14:19–21. Each verse holds exactly 72 letters; the <em>n</em>th Name joins letter <em>n</em> of verse 19, letter <em>n</em> of verse 20 read backwards, and letter <em>n</em> of verse 21.</p>
+        <div class="row2">
+          <label class="field">Find a Name<input id="shem-search" type="search" placeholder="number, letters or angel"></label>
+          <label class="toggle toggle-inline"><input id="shem-derive" type="checkbox"> Show derivation</label>
+        </div>
+        <div id="shem-detail" class="card" hidden></div>
+        <div id="shem-derivation" class="derivation" hidden></div>
+        <div id="shem-grid" class="shem-grid"></div>
+      </section>
+
+      <!-- GUIDE -->
+      <section class="tabpanel" data-tab="guide" role="tabpanel" hidden>
+        <p class="lead">A step-by-step pathworking for any of the twenty-two paths, with the model lighting the way. Suggested timings are only a rhythm; linger where you need to.</p>
+        <label class="field">Path
+          <select id="guide-path"></select>
+        </label>
+        <div class="row2">
+          <label class="toggle toggle-inline"><input id="guide-auto" type="checkbox"> Auto-advance</label>
+          <label class="toggle toggle-inline"><input id="guide-breath" type="checkbox"> Breath pacer</label>
+        </div>
+        <div id="breath" class="breath" hidden>
+          <div class="breath-circle"></div>
+          <div class="breath-label" id="breath-label">Inhale</div>
+        </div>
+        <div class="transport">
+          <button class="btn" data-act="g-prev" type="button">◀ Back</button>
+          <button class="btn btn-gold btn-wide" data-act="g-play" type="button">▶ Start</button>
+          <button class="btn" data-act="g-next" type="button">Next ▶</button>
+        </div>
+        <div class="progress"><div id="g-bar" class="bar bar-violet"></div></div>
+        <div id="g-step" class="card guide-step"></div>
+        <ol id="g-steps" class="steps steps-compact"></ol>
+        <label class="field">Journal (kept on this device only)
+          <textarea id="g-notes" rows="4" placeholder="What did you see, meet, hear? Write it down before it fades."></textarea>
+        </label>
+      </section>
+    </div>
+
+    <footer class="panel-foot">
+      <p>Correspondences follow the Hermetic (Golden Dawn) Tree. A visual aid for practice, not a teacher. Works offline once loaded.</p>
+    </footer>
+  </aside>
+</main>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
