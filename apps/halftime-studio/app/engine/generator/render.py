@@ -88,9 +88,10 @@ def chord_timeline(project: Project, section: Section) -> list[tuple[float, floa
 class SectionRenderer:
     """Renders one section of a project into stems (plus FX tail)."""
 
-    def __init__(self, project: Project, section_index: int) -> None:
+    def __init__(self, project: Project, section_index: int, cancel: CancelFn | None = None) -> None:
         self.project = project
         self.index = section_index
+        self.cancel = cancel
         self.section = project.sections[section_index]
         self.sr = project.render.sample_rate
         self.grid = Grid(project.tempo, self.sr)
@@ -343,13 +344,21 @@ class SectionRenderer:
         return buf
 
     # ------------------------------------------------------------------ driver
+    def _check_cancel(self) -> None:
+        if self.cancel is not None and self.cancel():
+            raise RenderCancelled()
+
     def render(self) -> RenderResult:
-        stems = {
-            "drums": self.render_drums(),
-            "bass": self.render_bass(),
-            "synths": self.render_synths(),
-            "fx": self.render_fx(),
-        }
+        stems: dict[str, np.ndarray] = {}
+        for bus, fn in (
+            ("drums", self.render_drums),
+            ("bass", self.render_bass),
+            ("synths", self.render_synths),
+            ("fx", self.render_fx),
+        ):
+            self._check_cancel()
+            stems[bus] = fn()
+        self._check_cancel()
         # Sidechain pumping follows the kick.
         if self._active("kick") and self.project.fx.sidechain_amount > 0:
             hits = patterns.kick_steps(self.section.bars, self.section.kind.value, roll_last_bar=False)

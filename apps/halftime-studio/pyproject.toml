@@ -58,6 +58,7 @@ ignore = ["UP042"]  # str-Enum mixins are deliberate: values round-trip through 
 
 [tool.ruff.lint.per-file-ignores]
 "app/project/presets.py" = ["E501"]  # one preset per line reads better than wrapped
+"app/ui/theme.py" = ["E501"]  # QSS rules stay on one line each
 
 [tool.mypy]
 python_version = "3.11"

@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import os
+
 import numpy as np
 import pytest
 
 from app.project.model import Project, Section, SectionKind
 from app.project.presets import new_project
+
+# GUI tests must never need a display.
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 
 @pytest.fixture
