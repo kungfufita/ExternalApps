@@ -7,8 +7,9 @@ half-time, and lets you drop labelled regions onto a bar grid with chops, stutte
 and reverb throws. A chat panel powered by Claude turns plain-English requests into project
 edits.
 
-> **Status:** Phase 1 of 6 — project model, generator engine and tests. No GUI yet; the
-> engine is driven from a developer CLI. See *Build phases* below.
+> **Status:** Phase 2 of 6 — project model, generator engine, and the desktop workstation
+> (timeline, transport, mixer, section preview). Vocal import, the AI assistant, export and
+> the installer follow in phases 3–6.
 
 ## Install (developer, any OS)
 
@@ -30,8 +31,30 @@ pip install torch --index-url https://download.pytorch.org/whl/cu121   # NVIDIA 
 pip install -r requirements-app.txt
 ```
 
+Start the workstation with:
+
+```bash
+python -m app
+```
+
 End users will get a normal Windows installer (phase 6) with ffmpeg and Rubber Band bundled;
 the Demucs model downloads on first use.
+
+### The workstation (phase 2)
+
+* **Start screen** — pick a style preset, open a project, or reopen a recent one.
+* **Timeline** — colour-coded section blocks on a bar/time ruler, a vocal lane, playhead and
+  loop region. Click a block to select it, drag its right edge to resize, right-click for
+  kind/add/duplicate/move/delete. Drag in the ruler to set a loop; double-click the ruler to
+  clear it. Ctrl+wheel zooms, Ctrl+0 fits the song.
+* **Transport** — Play/Pause (Space), Stop (Esc), Loop (L), *Preview section* (Ctrl+Space)
+  loops just the selected section. Tempo, key, scale and style live here too.
+* **Inspector** — chord progression as text (`i VI III VII` or `Am:2 F:2 C:1 G:1`), the
+  selected section's name/kind/bars/energy, and per-section element overrides.
+* **Mixer** — faders with mute/solo for drums, bass, synths, FX and vocal, master level and
+  limiter. **Elements** — enable and level for every synthesized element.
+* Every edit is undoable (Ctrl+Z / Ctrl+Y) and sections re-render in the background only
+  when something that affects their sound changes; faders respond live.
 
 ## Workflow
 
@@ -47,7 +70,7 @@ the Demucs model downloads on first use.
    throw, accelerating chops, gated stabs, formant shift); toggle and balance backing elements.
 5. **Export** — MP3 320k, 24-bit WAV, and stems (drums, bass, synths, FX, vocal).
 
-### Developer CLI (phase 1)
+### Developer CLI
 
 ```bash
 python -m app new demo.htproj --style "Heavy Trance" --key A --tempo 138
@@ -79,7 +102,9 @@ app/
     mix/       bus gains, mute/solo, master chain
     vocal/     (phase 3) separation, analysis, stretching, placement, vocal FX
   ai/          (phase 4) Anthropic tool-use assistant, undo stack
-  ui/          (phase 2) PySide6 interface
+  ui/          PySide6 interface: start screen, main window, timeline, transport, mixer,
+               inspector, background preview rendering
+  engine/playback.py  real-time segment mixer driven by sounddevice
 tests/         pytest, synthetic audio only
 installer/     (phase 6) PyInstaller spec + Inno Setup script
 ```
@@ -107,7 +132,10 @@ See `installer/` once phase 6 lands: PyInstaller one-folder build, then Inno Set
 * **MP3 export says ffmpeg not found** — set `HALFTIME_FFMPEG` to the ffmpeg executable or
   install ffmpeg on PATH; the installer bundles it.
 * **Render is slow** — a full 104-bar song takes ~15 s on a laptop CPU; previews render a
-  single section in 1–3 s.
+  single section in 1–3 s. The status at the right of the transport shows what is rendering.
+* **"No audio output"** — no output device could be opened. Check Windows sound settings;
+  exclusive-mode use by another program (some DAWs) blocks the device.
+* **Logs** — Help → Open log folder, or `%APPDATA%\HalfTimeStudio\logs`.
 
 ## Personal-use note
 
