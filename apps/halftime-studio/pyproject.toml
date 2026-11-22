@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "halftime-studio"
+version = "0.1.0"
+description = "AI-assisted remix workstation: generates original electronic backing tracks and mixes in vocals from audio files you own."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "soundfile>=0.12",
+    "pydantic>=2.5",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+# Full desktop application (GUI, analysis, separation, AI assistant).
+app = [
+    "PySide6>=6.6",
+    "librosa>=0.10",
+    "torch>=2.1",
+    "demucs>=4.0",
+    "pyrubberband>=0.3",
+    "pydub>=0.25",
+    "sounddevice>=0.4",
+    "anthropic>=0.40",
+    "keyring>=24",
+]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.4",
+    "mypy>=1.8",
+    "pyinstaller>=6.3",
+]
+
+[project.scripts]
+halftime-studio = "app.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "W"]
+ignore = ["UP042"]  # str-Enum mixins are deliberate: values round-trip through YAML/JSON
+
+[tool.ruff.lint.per-file-ignores]
+"app/project/presets.py" = ["E501"]  # one preset per line reads better than wrapped
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+check_untyped_defs = true

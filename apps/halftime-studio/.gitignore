@@ -1,0 +1,65 @@
+# --- Audio: never commit audio files ---
+*.wav
+*.mp3
+*.flac
+*.m4a
+*.aiff
+*.aif
+*.ogg
+*.opus
+*.wma
+*.aac
+
+# --- Secrets: never commit API keys ---
+.env
+.env.*
+*.key
+secrets.*
+*api_key*
+*apikey*
+*.secret
+
+# --- Build / packaging ---
+build/
+dist/
+*.spec.bak
+installer/Output/
+installer/vendor/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+
+# --- Model caches (Demucs / torch weights download on first use) ---
+models/
+.cache/
+torch_cache/
+demucs_cache/
+*.th
+*.pth
+*.ckpt
+
+# --- User projects and app data ---
+projects/
+*.htproj
+!tests/fixtures/*.htproj
+user_data/
+logs/
+*.log
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
