@@ -234,3 +234,27 @@ def default_progression_for(scale: str) -> list[str]:
 
 def transpose_key(key: str, semitones: int) -> str:
     return NOTE_NAMES[(note_to_pitch_class(key) + semitones) % 12]
+
+
+def parse_progression_text(text: str, key: str, scale: str) -> list[tuple[str, float]]:
+    """Parse ``"i VI III VII"`` or ``"Am:2 F:2 C:1 G:1"`` into ``[(symbol, bars), ...]``.
+
+    Bars default to 2. Every symbol is validated against the key/scale.
+    """
+    tokens = [t for t in re.split(r"[\s,|]+", text.strip()) if t]
+    if not tokens:
+        raise ValueError("progression is empty")
+    out: list[tuple[str, float]] = []
+    for tok in tokens:
+        sym, _, bars_txt = tok.partition(":")
+        bars = 2.0
+        if bars_txt:
+            try:
+                bars = float(bars_txt)
+            except ValueError as exc:
+                raise ValueError(f"bad bar count in {tok!r}") from exc
+            if not 0 < bars <= 16:
+                raise ValueError(f"bars must be between 0 and 16 in {tok!r}")
+        parse_chord(sym, key, scale)  # raises on garbage
+        out.append((sym, bars))
+    return out
