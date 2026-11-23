@@ -2,9 +2,16 @@
    Newest first. Each entry: version, date, title, and items tagged
    feature | adjusted | fixed | content. Add a new entry at the top for every release. */
 
-export const APP_VERSION = "1.3.1";
+export const APP_VERSION = "1.4.0";
 
 export const CHANGELOG = [
+  { version: "1.4.0", date: "2026-11-23", title: "Pronunciation and read-aloud",
+    items: [
+      { type: "feature", text: "Text to speech with the browser's own voices (offline, no account): a speaker button beside every Divine Name, Archangel, choir, Sephirah, letter, World, Shell, angel of the 72 and ritual word, with a phonetic respelling in the tooltip." },
+      { type: "feature", text: "Guide: the gold Names in each step are tappable to hear them; 'Read' on a step reads the whole step; an option reads each step aloud as it begins, for working with eyes closed." },
+      { type: "feature", text: "Voice settings in the Guide: choose a voice, set the speed, and 'vibrate slowly' to draw out each syllable as in practice. A pronunciation guide under Protection lists the Cross, the banishing Names and the chief Divine Names with their respellings." },
+      { type: "content", text: "Respellings follow the usual Western (Golden Dawn) pronunciation: kh as in loch, tz as in its, stress on the last syllable. The 72 angelic names are respelled by rule." },
+    ] },
   { version: "1.3.1", date: "2026-11-23", title: "Phone layout and a layout picker",
     items: [
       { type: "feature", text: "Layout picker in the top bar: Auto (follows screen size), Phone or Desktop, remembered on this device." },

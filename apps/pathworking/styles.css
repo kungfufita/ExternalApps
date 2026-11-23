@@ -437,3 +437,18 @@ body.narrow .layout-pick { min-width: 0; }
 }
 .layout-pick option { background: var(--panel-solid); }
 .topbar-actions { align-items: center; }
+
+/* ───────────── speech ───────────── */
+.say { border: 1px solid var(--line); background: rgba(255, 255, 255, 0.05); color: var(--gold); border-radius: 999px; font-size: 12px; padding: 2px 7px; min-height: 26px; cursor: pointer; margin-left: 6px; vertical-align: middle; line-height: 1; }
+.say:hover { background: rgba(242, 209, 75, 0.18); }
+.say-step { font-size: 12px; margin-left: 8px; vertical-align: 3px; font-weight: 600; }
+.guide-step .vibrate { border: 0; background: rgba(242, 209, 75, 0.1); color: var(--gold); font-weight: 700; padding: 1px 6px; border-radius: 6px; cursor: pointer; font: inherit; font-weight: 700; }
+.guide-step .vibrate:hover { background: rgba(242, 209, 75, 0.22); }
+.guide-step .vibrate .say-ico { font-size: 10px; opacity: 0.7; }
+.say-grid { display: grid; gap: 3px; margin: 8px 0; }
+.say-row { display: grid; grid-template-columns: 1fr 1fr auto; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.03); font-size: 13px; }
+.say-ph { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+#voice-rate { width: 100%; accent-color: var(--gold); min-height: 30px; }
+#voice-box .toggle { min-height: 34px; }
+
+body.wide .panel-grip-hint { display: none; }

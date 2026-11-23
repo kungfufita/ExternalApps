@@ -10,6 +10,7 @@ import {
 import { FOUR_WORLDS, WORLD_BY_KEY, FOUR_SHELLS, QLIPHOTH, LADDER_NOTE, QLIPHOTH_NOTE } from "./worlds.js";
 import { MAJORS, MAJOR_BY_PATH, SUITS, buildMinors, TAROT_USES, TAROT_SECRET, TAROT_SOURCES } from "./tarot.js";
 import { APP_VERSION, CHANGELOG, TYPE_LABELS } from "./changelog.js";
+import { speech, phonetic, sayBtn, PRONOUNCE } from "./speech.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -155,11 +156,11 @@ function sephCard(s, { close = true } = {}) {
   const pillar = { right: "Pillar of Mercy", left: "Pillar of Severity", mid: "Pillar of Equilibrium" }[s.pillar];
   return `
     ${close ? '<button class="close" type="button" aria-label="Close">×</button>' : ""}
-    <div class="title"><span class="heb">${esc(s.hebrew)}</span><span class="name">${esc(s.name)}</span><span class="meta">${s.hidden ? "hidden" : s.id} · ${esc(s.meaning)}</span></div>
+    <div class="title"><span class="heb">${esc(s.hebrew)}</span><span class="name">${esc(s.name)}</span>${sayBtn(s.name)}<span class="meta">${s.hidden ? "hidden" : s.id} · ${esc(s.meaning)}</span></div>
     <dl>
-      <dt>Divine Name</dt><dd>${esc(s.godName)}${s.godHebrew ? `<span class="heb">${esc(s.godHebrew)}</span>` : ""}</dd>
-      <dt>Archangel</dt><dd>${esc(s.archangel)}</dd>
-      <dt>Choir</dt><dd>${esc(s.choir)}</dd>
+      <dt>Divine Name</dt><dd>${esc(s.godName)}${s.godHebrew ? `<span class="heb">${esc(s.godHebrew)}</span>` : ""}${s.godName !== "—" ? sayBtn(s.godName) : ""}</dd>
+      <dt>Archangel</dt><dd>${esc(s.archangel)}${s.archangel !== "—" ? sayBtn(s.archangel) : ""}</dd>
+      <dt>Choir</dt><dd>${esc(s.choir)}${s.choir !== "—" ? sayBtn(s.choir) : ""}</dd>
       <dt>Sphere</dt><dd>${esc(s.planet)}</dd>
       <dt>Intelligence</dt><dd>${esc(s.intelligence)}</dd>
       <dt>World · Pillar</dt><dd>${esc(s.world)} · ${pillar}</dd>
@@ -171,7 +172,7 @@ function pathCard(p, { close = true } = {}) {
   const a = SEPH_BY_KEY[p.from], b = SEPH_BY_KEY[p.to];
   return `
     ${close ? '<button class="close" type="button" aria-label="Close">×</button>' : ""}
-    <div class="title"><span class="heb">${esc(p.letter)}</span><span class="name">${esc(p.name)}</span><span class="meta">Path ${p.n} · ${esc(p.lmeaning)}</span></div>
+    <div class="title"><span class="heb">${esc(p.letter)}</span><span class="name">${esc(p.name)}</span>${sayBtn(p.name)}<span class="meta">Path ${p.n} · ${esc(p.lmeaning)}</span></div>
     <dl>
       <dt>Joins</dt><dd>${esc(b.name)} ↔ ${esc(a.name)}</dd>
       <dt>Attribution</dt><dd>${esc(p.glyph)} ${esc(p.attr)}</dd>
@@ -184,7 +185,8 @@ function shemCard(nm, { close = true } = {}) {
   return `
     ${close ? '<button class="close" type="button" aria-label="Close">×</button>' : ""}
     <div class="big-heb" lang="he" dir="rtl">${esc(nm.hebrew)}</div>
-    <div class="center"><strong>${nm.n}</strong> · ${esc(nm.angel)} <span class="heb">${esc(nm.root + nm.suffix)}</span></div>
+    <div class="center"><strong>${nm.n}</strong> · ${esc(nm.angel)} <span class="heb">${esc(nm.root + nm.suffix)}</span> ${sayBtn(nm.angel)}</div>
+    <div class="center note">said: ${esc(phonetic(nm.angel))} · letters: ${nm.letterNames.map(l => esc(phonetic(l))).join(" · ")}</div>
     <dl>
       <dt>Letters</dt><dd>${nm.letterNames.map(esc).join(" · ")}</dd>
       <dt>From verse 19</dt><dd>letter ${nm.indices.v19 + 1}: <span class="heb">${esc(nm.letters[0])}</span></dd>
@@ -414,7 +416,7 @@ ladderToggle.checked = ladderOpt.checked;
 function worldCard(w) {
   const rows = w.sephiroth.map(k => { const s = SEPH_BY_KEY[k]; return `<tr><td><span class="dot" style="background:${s.quartered ? "#c7b94a" : s.color}"></span>${esc(s.name)}</td><td>${esc(s[w.field])}</td></tr>`; }).join("");
   return `<button class="close" type="button" aria-label="Close">×</button>
-    <div class="title"><span class="heb">${esc(w.hebrew)}</span><span class="name">${esc(w.name)}</span><span class="meta">${esc(w.meaning)}</span></div>
+    <div class="title"><span class="heb">${esc(w.hebrew)}</span><span class="name">${esc(w.name)}</span>${sayBtn(w.name)}<span class="meta">${esc(w.meaning)}</span></div>
     <dl>
       <dt>Letter of the Name</dt><dd>${esc(w.letter)}</dd>
       <dt>Element</dt><dd>${esc(w.element)}</dd>
@@ -435,7 +437,7 @@ function worldCard(w) {
 function shellCard(s) {
   const mirror = WORLD_BY_KEY[s.mirrors];
   return `<button class="close" type="button" aria-label="Close">×</button>
-    <div class="title"><span class="heb">${esc(s.hebrew)}</span><span class="name">${esc(s.name)}</span><span class="meta">${esc(s.meaning)}</span></div>
+    <div class="title"><span class="heb">${esc(s.hebrew)}</span><span class="name">${esc(s.name)}</span>${sayBtn(s.name)}<span class="meta">${esc(s.meaning)}</span></div>
     <dl>
       <dt>Source</dt><dd>${esc(s.source)}</dd>
       <dt>Reflects</dt><dd>${esc(mirror.name)} · ${esc(mirror.meaning)}</dd>
@@ -590,7 +592,7 @@ function crossSVG() {
   return `<figure class="sym sym-wide"><svg viewBox="0 0 100 108" role="img" aria-label="The Kabbalistic Cross: forehead, breast, right shoulder, left shoulder, hands at heart">
     <line x1="50" y1="14" x2="50" y2="92" stroke="#fff7d6" stroke-width="2.2" style="filter:drop-shadow(0 0 4px #f2d14b)"/>
     <line x1="18" y1="50" x2="82" y2="50" stroke="#fff7d6" stroke-width="2.2" style="filter:drop-shadow(0 0 4px #f2d14b)"/>
-    ${pts.map(([t, x, y], i) => `<circle cx="${x}" cy="${y}" r="5" fill="#f2d14b"/><text x="${x}" y="${y + 1.9}" text-anchor="middle" font-size="5" fill="#1a1400" font-weight="700">${[1, 4, 5, 3, 2][i]}</text><text x="${x}" y="${y + (y === 50 ? 12 : y < 50 ? -8 : 13)}" text-anchor="middle" font-size="6" fill="#e8eaf6">${t}</text>`).join("")}
+    ${pts.map(([t, x, y], i) => `<circle cx="${x}" cy="${y}" r="5" fill="#f2d14b"/><text x="${x}" y="${y + 1.9}" text-anchor="middle" font-size="5" fill="#1a1400" font-weight="700">${[1, 4, 5, 3, 2][i]}</text><text x="${x}" y="${y + (x === 50 && y === 50 ? -9 : y === 50 ? 12 : y < 50 ? -8 : 13)}" text-anchor="middle" font-size="6" fill="#e8eaf6">${t}</text>`).join("")}
     </svg><figcaption>The Kabbalistic Cross: 1 brow, 2 breast, 3 right shoulder (viewer's left), 4 left shoulder, 5 hands at heart</figcaption></figure>`;
 }
 
@@ -600,7 +602,7 @@ function renderPrep() {
   $("#prep-entering").innerHTML = `<p class="prep-intro">${esc(ENTERING.intro)}</p>${ENTERING.methods.map(m => `<div class="method"><strong>${esc(m.title)}</strong>${paras(m.text)}${srcTags(m.src)}</div>`).join("")}`;
   const P = PROTECTION;
   $("#prep-protection").innerHTML = `<p class="prep-intro">${esc(P.intro)}</p>
-    <div class="method"><strong>${esc(P.cross.title)}</strong><p>${esc(P.cross.text)}</p>${crossSVG()}${srcTags(P.cross.src)}</div>
+    <div class="method"><strong>${esc(P.cross.title)}</strong><p>${esc(P.cross.text)}</p>${crossSVG()}<div class="say-grid">${P.cross.words.map(n => `<div class="say-row"><span>${esc(n)}</span><span class="say-ph">${esc(phonetic(n))}</span>${sayBtn(n)}</div>`).join("")}</div>${srcTags(P.cross.src)}</div>
     <div class="method"><strong>${esc(P.pentagram.title)}</strong><p>${esc(P.pentagram.text)}</p>
       <div class="sym-row">${pentagramSVG(P.pentagram.banishing, "#5fd38a", "Banishing Pentagram of Earth: trace in this order")}${pentagramSVG(P.pentagram.invoking, "#f2d14b", "Invoking Pentagram of Earth (advanced)")}</div>
       <p class="note">${esc(P.pentagram.note)}</p>${srcTags(P.pentagram.src)}</div>
@@ -608,7 +610,9 @@ function renderPrep() {
     <div class="method"><strong>${esc(P.hexagram.title)}</strong><p>${esc(P.hexagram.text)}</p>${hexagramSVG()}${srcTags(P.hexagram.src)}</div>
     <div class="method"><strong>${esc(P.seal.title)}</strong><p>${esc(P.seal.text)}</p>${srcTags(P.seal.src)}</div>
     <div class="method"><strong>${esc(P.lbrp.title)}</strong><p>${esc(P.lbrp.text)}</p>
-      <div class="quarters">${P.lbrp.quarters.map(q => `<div class="quarter" style="--qc:${q.color}"><span class="q-dir">${q.dir}</span><span class="q-name">${esc(q.name)}</span><span class="q-arch">${esc(q.archangel)}</span></div>`).join("")}</div>${srcTags(P.lbrp.src)}</div>`;
+      <div class="quarters">${P.lbrp.quarters.map(q => `<div class="quarter" style="--qc:${q.color}"><span class="q-dir">${q.dir}</span><span class="q-name">${esc(q.name)} ${sayBtn(q.name)}</span><span class="q-arch">${esc(q.archangel)} ${sayBtn(q.archangel)}</span></div>`).join("")}</div>${srcTags(P.lbrp.src)}</div>
+    <div class="method"><strong>Pronunciation</strong><p>Every Name, Archangel, letter and ritual word in this app has a speaker button. Tap it to hear the word; with “vibrate slowly” on (Guide → Voice) each syllable is drawn out as it would be in practice. The respellings follow the usual Western pronunciation: <em>kh</em> is the guttural of Scottish <em>loch</em>, <em>tz</em> as in <em>its</em>, and the stress usually falls on the last syllable.</p>
+      <div class="say-grid">${["Eheieh", "YHVH", "Adonai ha-Aretz", "Shaddai El Chai", "Elohim Tzabaoth", "Ateh", "ve-Geburah", "ve-Gedulah", "le-Olam, Amen", "AGLA"].map(n => `<div class="say-row"><span>${esc(n)}</span><span class="say-ph">${esc(phonetic(n))}</span>${sayBtn(n)}</div>`).join("")}</div></div>`;
   const V = INTEGRATION.virtues;
   $("#prep-integration").innerHTML = `<p class="prep-intro">${esc(INTEGRATION.intro)}</p><ul class="rules">${INTEGRATION.rules.map(r => `<li>${esc(r)}</li>`).join("")}</ul>
     <table class="vtable"><thead><tr><th>Sephirah</th><th>Virtue</th><th>Vice</th><th>Shows in life as</th></tr></thead><tbody>
@@ -644,7 +648,7 @@ function buildGuide(n) {
   const p = PATH_BY_N[n];
   const lower = SEPH_BY_KEY[p.to], upper = SEPH_BY_KEY[p.from];
   const col = p.color;
-  const V = s => `<span class="vibrate">${esc(s)}</span>`;
+  const V = s => `<button type="button" class="vibrate" data-say="${esc(s)}" title="Tap to hear: ${esc(phonetic(s))}">${esc(s)} <span class="say-ico" aria-hidden="true">🔊</span></button>`;
   const sc = PATH_SCRIPTS[n];
   const tl = TEMPLES[lower.key], tu = TEMPLES[upper.key];
   const vu = INTEGRATION.virtues[upper.key];
@@ -692,14 +696,26 @@ function guideRender() {
   const st = guide.steps[guide.i];
   const p = PATH_BY_N[guide.n];
   $$("#g-steps li").forEach((li, i) => { li.classList.toggle("active", i === guide.i); li.classList.toggle("done", i < guide.i); });
-  $("#g-step").innerHTML = `<div class="step-title">${guide.i + 1}. ${esc(st.title)}</div><div class="step-where">${esc(st.where)}</div>${st.html}<div class="timer"><span>${fmt(guide.elapsed)} / ${fmt(st.secs)}</span><span>${guide.running ? "running" : "paused"} · session ${fmt(guide.total)}</span></div>`;
+  $("#g-step").innerHTML = `<div class="step-title">${guide.i + 1}. ${esc(st.title)} <button type="button" class="say say-step" id="g-read" title="Read this step aloud" aria-label="Read this step aloud">🔊 Read</button></div><div class="step-where">${esc(st.where)}</div>${st.html}<div class="timer"><span>${fmt(guide.elapsed)} / ${fmt(st.secs)}</span><span>${guide.running ? "running" : "paused"} · session ${fmt(guide.total)}</span></div>`;
   $("#g-bar").style.width = `${Math.min(100, (guide.elapsed / st.secs) * 100)}%`;
   $('[data-act="g-play"]').textContent = guide.running ? "❚❚ Pause" : guide.elapsed > 0 || guide.i > 0 ? "▶ Resume" : "▶ Start";
+  $("#g-read").addEventListener("click", () => readStep());
+  if (mode === "guide" && $("#guide-read").checked && guide.lastRead !== guide.i && (guide.running || guide.i > 0)) { guide.lastRead = guide.i; readStep(); }
   if (mode === "guide") {
     scene.setLit(st.lit, st.paths);
     if (st.focus) scene.focusSephirah(st.focus); else scene.resetView();
     setHud(`Path ${guide.n} · ${esc(p.name)} <span class="heb">${esc(p.letter)}</span>`, `${esc(st.title)} · ${esc(st.where)}`);
   }
+}
+function stepText(st) {
+  const tmp = document.createElement("div"); tmp.innerHTML = st.html;
+  $$("svg, figure, .say-ico", tmp).forEach(x => x.remove());
+  return `${st.title}. ${tmp.textContent.replace(/\s+/g, " ").trim()}`;
+}
+function readStep() {
+  const st = guide.steps[guide.i];
+  if (speech.speaking()) { speech.stop(); return; }
+  if (!speech.read(stepText(st))) toast("This browser has no speech voices");
 }
 function guideStep(d) {
   guide.i = Math.max(0, Math.min(guide.steps.length - 1, guide.i + d));
@@ -707,6 +723,7 @@ function guideStep(d) {
 }
 function guideToggle() {
   guide.running = !guide.running;
+  if (!guide.running) speech.stop();
   if (guide.running) { guide.last = performance.now(); if (!guide.started) guide.started = new Date().toISOString(); guideTick(); }
   guideRender();
 }
@@ -725,6 +742,27 @@ function guideTick() {
   if (guide.running) setTimeout(guideTick, 250);
 }
 guideSel.addEventListener("change", () => { store.set("guidePath", +guideSel.value); guideLoad(+guideSel.value); });
+/* voice settings */
+{
+  Object.assign(speech.settings, store.get("speech", {}));
+  const vsel = $("#voice-sel"), vrate = $("#voice-rate"), vvib = $("#voice-vibrate"), vread = $("#guide-read");
+  const fill = () => { const vs = speech.voices(); vsel.innerHTML = `<option value="">Default voice</option>` + vs.map(v => `<option value="${esc(v.name)}" ${v.name === speech.settings.voice ? "selected" : ""}>${esc(v.name)} (${esc(v.lang)})</option>`).join(""); };
+  if (speech.supported) { fill(); speechSynthesis.addEventListener?.("voiceschanged", fill); } else { $("#voice-box").innerHTML = `<p class="note">This browser does not offer speech voices. On iPhone and Android the built-in browser does; on desktop, Chrome, Edge and Safari do.</p>`; }
+  vrate.value = speech.settings.rate; vvib.checked = speech.settings.vibrate; vread.checked = store.get("guideRead", false);
+  const save = () => store.set("speech", speech.settings);
+  vsel.addEventListener("change", () => { speech.settings.voice = vsel.value; save(); speech.sayName("Tiphareth"); });
+  vrate.addEventListener("input", () => { speech.settings.rate = +vrate.value; save(); });
+  vrate.addEventListener("change", () => speech.sayName("Adonai ha-Aretz"));
+  vvib.addEventListener("change", () => { speech.settings.vibrate = vvib.checked; save(); speech.sayName("Eheieh"); });
+  vread.addEventListener("change", () => { store.set("guideRead", vread.checked); if (!vread.checked) speech.stop(); });
+  $("#voice-test").addEventListener("click", () => speech.sayName("YHVH Eloah va-Daath"));
+}
+/* any speaker button anywhere */
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-say]"); if (!b) return;
+  e.preventDefault();
+  if (!speech.sayName(b.dataset.say)) toast("This browser has no speech voices");
+});
 $("#guide-auto").addEventListener("change", e => store.set("guideAuto", e.target.checked));
 $("#guide-breath").addEventListener("change", e => { store.set("guideBreath", e.target.checked); $("#breath").hidden = !e.target.checked; });
 $("#g-notes").addEventListener("input", e => store.set("notes." + guide.n, e.target.value));
