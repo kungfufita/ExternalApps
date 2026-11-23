@@ -5,7 +5,10 @@ import {
 } from "./data.js";
 import {
   SOURCES, ORDER, DANGERS, ENTERING, PROTECTION, INTEGRATION, TEMPLES, PATH_SCRIPTS, PROTECTION_STEPS, JOURNAL_MATERIALS,
+  sessionNeeds, DEFAULT_EFFECT_KINDS,
 } from "./guide.js";
+import { FOUR_WORLDS, WORLD_BY_KEY, FOUR_SHELLS, QLIPHOTH, LADDER_NOTE, QLIPHOTH_NOTE } from "./worlds.js";
+import { MAJORS, MAJOR_BY_PATH, SUITS, buildMinors, TAROT_USES, TAROT_SECRET, TAROT_SOURCES } from "./tarot.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -66,6 +69,7 @@ function setMode(m) {
   scene.showFlash(m === "descent");
   scene.showSerpent(m === "ascent");
   scene.focusShem(null);
+  if (scene.ladderFocus && m !== "worlds") { scene.focusWorld(null); scene.resetView(); $$(".world-chip").forEach(c => c.classList.remove("active")); }
   if (m === "tree") { scene.clearLit(); setHud("Tree of Life", "Drag to rotate · pinch or scroll to zoom · tap a sphere, path or name"); }
   if (m === "descent") { scene.setFlashProgress(descent.position()); descentRender(); }
   if (m === "ascent") { scene.setSerpentProgress(ascent.position()); ascentRender(); }
@@ -73,6 +77,8 @@ function setMode(m) {
     if (!scene.options.ring) { scene.setOptions({ ring: true }); $('[data-opt="ring"]').checked = true; }
     scene.clearLit(); setHud("Shem HaMephorash", "The 72 Names · tap a name in the ring or the list");
   }
+  if (m === "worlds") { scene.clearLit(); setHud("The Four Worlds", "Above: Atziluth, Briah, Yetzirah, Assiah · Below: the four Shells · tap a World"); }
+  if (m === "tarot") { scene.clearLit(); setHud("Tarot", "The 78 cards on the Tree · tap a card"); if (tarotSelected) selectTarot(tarotSelected); }
   if (m === "guide") { guideRender(); renderReadiness(); }
   if (m === "journal") { scene.clearLit(); setHud("Journal", "Your record of each working and what followed it · kept on this device"); journalRender(); }
   store.set("mode", m);
@@ -198,6 +204,7 @@ scene.onSelect = sel => {
   if (sel.type === "sephirah") selectSephirah(sel.key);
   else if (sel.type === "path") selectPath(sel.n);
   else if (sel.type === "shem") { setMode("names"); selectShem(sel.n); }
+  else if (sel.type === "world") selectWorld(sel.key, { fromScene: true });
 };
 
 $$("[data-opt]").forEach(cb => {
@@ -359,6 +366,155 @@ function renderDerivation() {
     row("Ex. 14:21", shem.verses.v21, sel?.indices.v21, false) +
     `<div class="vnote">Each row is 72 letters, read right to left. Verse 20 is taken in reverse (boustrophedon), so Name 1 pairs the first letters of verses 19 and 21 with the last letter of verse 20.${sel ? ` Highlighted: Name ${sel.n}, <span class="heb">${esc(sel.hebrew)}</span>.` : ""}</div>`;
 }
+
+/* ───────────── WORLDS tab ───────────── */
+const ladderToggle = $("#ladder-toggle");
+const ladderOpt = $('[data-opt="ladder"]');
+function setLadder(v) {
+  ladderToggle.checked = v; ladderOpt.checked = v;
+  scene.setOptions({ ladder: v }); store.set("opt.ladder", v);
+}
+ladderToggle.addEventListener("change", () => setLadder(ladderToggle.checked));
+ladderOpt.addEventListener("change", () => { ladderToggle.checked = ladderOpt.checked; });
+ladderToggle.checked = ladderOpt.checked;
+
+function worldCard(w) {
+  const rows = w.sephiroth.map(k => { const s = SEPH_BY_KEY[k]; return `<tr><td><span class="dot" style="background:${s.quartered ? "#c7b94a" : s.color}"></span>${esc(s.name)}</td><td>${esc(s[w.field])}</td></tr>`; }).join("");
+  return `<button class="close" type="button" aria-label="Close">×</button>
+    <div class="title"><span class="heb">${esc(w.hebrew)}</span><span class="name">${esc(w.name)}</span><span class="meta">${esc(w.meaning)}</span></div>
+    <dl>
+      <dt>Letter of the Name</dt><dd>${esc(w.letter)}</dd>
+      <dt>Element</dt><dd>${esc(w.element)}</dd>
+      <dt>Part of the soul</dt><dd>${esc(w.soul)}</dd>
+      <dt>Tarot</dt><dd>${esc(w.suit)} · ${esc(w.court)} · ${esc(w.trumps)}</dd>
+      <dt>Colour scale</dt><dd>${esc(w.scale)} — ${esc(w.scaleNote)}</dd>
+      <dt>Partzuf</dt><dd>${esc(w.partzuf)}</dd>
+      <dt>In the body</dt><dd>${esc(w.body)}</dd>
+      <dt>How it is sensed</dt><dd>${esc(w.sense)}</dd>
+      <dt>Joins</dt><dd>${esc(w.kether)}</dd>
+    </dl>
+    <p class="note">${esc(w.description)}</p>
+    <p><strong>In practice.</strong> ${esc(w.practice)}</p>
+    <h3 class="jh">${esc(w.hierarchy)} in ${esc(w.name)}</h3>
+    <p class="note">${esc(w.hierarchyNote)}</p>
+    <table class="vtable"><tbody>${rows}</tbody></table>`;
+}
+function shellCard(s) {
+  const mirror = WORLD_BY_KEY[s.mirrors];
+  return `<button class="close" type="button" aria-label="Close">×</button>
+    <div class="title"><span class="heb">${esc(s.hebrew)}</span><span class="name">${esc(s.name)}</span><span class="meta">${esc(s.meaning)}</span></div>
+    <dl>
+      <dt>Source</dt><dd>${esc(s.source)}</dd>
+      <dt>Reflects</dt><dd>${esc(mirror.name)} · ${esc(mirror.meaning)}</dd>
+      <dt>Danger</dt><dd>${esc(s.danger)}</dd>
+      <dt>Redeemed?</dt><dd>${esc(s.redeem)}</dd>
+    </dl>
+    <p class="note">${esc(s.description)}</p>
+    <div class="stop"><strong>How to recognise it in a working</strong><p>${esc(s.recognise)}</p></div>`;
+}
+function selectWorld(key, { fromScene = false } = {}) {
+  const w = WORLD_BY_KEY[key], sh = FOUR_SHELLS.find(x => x.key === key);
+  if (!w && !sh) return;
+  if (mode !== "worlds") setMode("worlds");
+  if (!ladderToggle.checked) setLadder(true);
+  scene.focusWorld(key);
+  $$(".world-chip").forEach(c => c.classList.toggle("active", c.dataset.key === key));
+  const d = $("#world-detail"); d.innerHTML = w ? worldCard(w) : shellCard(sh); d.hidden = false;
+  $(".close", d).addEventListener("click", () => { d.hidden = true; scene.focusWorld(null); $$(".world-chip").forEach(c => c.classList.remove("active")); });
+  setHud(`${esc((w || sh).name)} <span class="heb">${esc((w || sh).hebrew)}</span>`, esc((w || sh).meaning));
+  if (!fromScene) d.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+{
+  const wl = $("#worlds-list");
+  for (const w of FOUR_WORLDS) {
+    const b = document.createElement("button"); b.className = "world-chip"; b.type = "button"; b.dataset.key = w.key;
+    b.style.setProperty("--wc", w.color);
+    b.innerHTML = `<span class="w-name">${esc(w.name)} <span class="heb">${esc(w.hebrew)}</span></span><span class="w-sub">${esc(w.meaning.split(" · ")[0])} · ${esc(w.letter)} · ${esc(w.element)} · ${esc(w.hierarchy)}</span>`;
+    b.addEventListener("click", () => selectWorld(w.key));
+    wl.appendChild(b);
+  }
+  const sl = $("#shells-list");
+  for (const s of FOUR_SHELLS) {
+    const b = document.createElement("button"); b.className = "world-chip world-chip-shell"; b.type = "button"; b.dataset.key = s.key;
+    b.style.setProperty("--wc", s.tone);
+    b.innerHTML = `<span class="w-name">${esc(s.name)} <span class="heb">${esc(s.hebrew)}</span></span><span class="w-sub">${esc(s.meaning)}</span>`;
+    b.addEventListener("click", () => selectWorld(s.key));
+    sl.appendChild(b);
+  }
+  $("#ladder-note").innerHTML = `<p>${esc(LADDER_NOTE)}</p>`;
+  $("#qliphoth-note").innerHTML = `<p class="prep-intro">${esc(QLIPHOTH_NOTE)}</p><table class="vtable"><thead><tr><th>Sephirah</th><th>Qlipha</th><th>What it is</th><th>Archdemon (777)</th></tr></thead><tbody>${SEPHIROTH.map(s => { const q = QLIPHOTH[s.key]; return `<tr><td><span class="dot" style="background:${s.quartered ? "#c7b94a" : s.color}"></span>${esc(s.name)}</td><td>${esc(q.name)} <span class="heb">${esc(q.hebrew)}</span></td><td>${esc(q.meaning)}</td><td>${esc(q.demon)}</td></tr>`; }).join("")}</tbody></table>`;
+}
+
+/* ───────────── TAROT tab ───────────── */
+const MINORS = buildMinors();
+const SUIT_BY_KEY = Object.fromEntries(SUITS.map(s => [s.key, s]));
+const tarotFilter = $("#tarot-filter"), tarotSearch = $("#tarot-search"), tarotGrid = $("#tarot-grid");
+tarotFilter.value = store.get("tarotFilter", "major");
+let tarotSelected = null;
+function tarotCards() {
+  const f = tarotFilter.value, q = tarotSearch.value.trim().toLowerCase();
+  let list = f === "major" ? MAJORS.map(m => ({ ...m, id: "major-" + m.num, kind: "major" })) : MINORS.filter(c => c.suit === f);
+  if (q) list = list.filter(c => [c.name, c.title, c.roman, c.path, c.decan, c.seph].filter(Boolean).join(" ").toLowerCase().includes(q));
+  return list;
+}
+function renderTarotGrid() {
+  const list = tarotCards();
+  tarotGrid.innerHTML = list.map(c => {
+    if (c.kind === "major") { const p = PATH_BY_N[c.path]; return `<button class="tcard" type="button" data-id="${c.id}" style="--tc:${p.color}"><span class="t-num">${c.roman}</span><span class="t-name">${esc(c.name)}</span><span class="t-sub"><span class="heb">${esc(p.letter)}</span> path ${c.path} · ${esc(p.attr)}</span></button>`; }
+    const s = SUIT_BY_KEY[c.suit], sp = SEPH_BY_KEY[c.seph];
+    return `<button class="tcard" type="button" data-id="${c.id}" style="--tc:${s.color}"><span class="t-num">${c.kind === "court" ? c.name.split(" ")[0] : c.num}</span><span class="t-name">${esc(c.name)}</span><span class="t-sub">${esc(c.title)}<br>${esc(sp.name)} · ${esc(WORLD_BY_KEY[c.world].name)}</span></button>`;
+  }).join("");
+  $$(".tcard", tarotGrid).forEach(b => b.addEventListener("click", () => selectTarot(b.dataset.id)));
+  $$(".tcard", tarotGrid).forEach(b => b.classList.toggle("active", b.dataset.id === tarotSelected));
+}
+function selectTarot(id) {
+  tarotSelected = id;
+  $$(".tcard").forEach(b => b.classList.toggle("active", b.dataset.id === id));
+  const d = $("#tarot-detail"); d.hidden = false;
+  if (id.startsWith("major-")) {
+    const m = MAJORS[+id.slice(6)], p = PATH_BY_N[m.path], lo = SEPH_BY_KEY[p.to], up = SEPH_BY_KEY[p.from];
+    d.innerHTML = `<button class="close" type="button" aria-label="Close">×</button>
+      <div class="title"><span class="t-big" style="color:${p.color}">${m.roman}</span><span class="name">${esc(m.name)}</span><span class="meta">${esc(m.title)}</span></div>
+      <dl>
+        <dt>Path</dt><dd>${m.path} · <span class="heb">${esc(p.letter)}</span> ${esc(p.name)} (${esc(p.lmeaning)}) · ${esc(lo.name)} ↔ ${esc(up.name)}</dd>
+        <dt>Attribution</dt><dd>${esc(p.glyph)} ${esc(p.attr)}</dd>
+        <dt>Intelligence</dt><dd>${esc(p.intelligence)}</dd>
+        <dt>Colour</dt><dd><span class="swatch" style="background:${p.color}"></span>${esc(p.colorName)}</dd>
+        <dt>Upright</dt><dd>${esc(m.upright)}</dd>
+        <dt>Reversed</dt><dd>${esc(m.reversed)}</dd>
+      </dl>
+      <div class="secret"><strong>What the image keeps</strong><p>${esc(m.secret)}</p></div>
+      <div class="transport"><button class="btn btn-wide" type="button" id="t-open">Open this path in the Guide</button></div>`;
+    scene.setLit([p.from, p.to], [p.n]);
+    setHud(`${m.roman} · ${esc(m.name)} <span class="heb">${esc(p.letter)}</span>`, `${esc(m.title)} · path ${p.n}`);
+    $("#t-open", d).addEventListener("click", () => { guideSel.value = p.n; store.set("guidePath", p.n); guideLoad(p.n); setMode("guide"); });
+  } else {
+    const c = MINORS.find(x => x.id === id), s = SUIT_BY_KEY[c.suit], sp = SEPH_BY_KEY[c.seph], w = WORLD_BY_KEY[c.world];
+    d.innerHTML = `<button class="close" type="button" aria-label="Close">×</button>
+      <div class="title"><span class="t-big" style="color:${s.color}">${esc(s.sign)}</span><span class="name">${esc(c.name)}</span><span class="meta">${esc(c.title)}</span></div>
+      <dl>
+        <dt>Suit</dt><dd>${esc(s.name)} · ${esc(s.element)} · ${esc(s.letter)} of the Name</dd>
+        <dt>Sephirah</dt><dd><span class="dot-inline" style="background:${sp.quartered ? "#c7b94a" : sp.color}"></span>${esc(sp.name)} · ${esc(sp.meaning)}</dd>
+        <dt>World</dt><dd>${esc(w.name)} · ${esc(w.meaning)}</dd>
+        ${c.kind === "pip" ? `<dt>Decan</dt><dd>${esc(c.decan)}</dd>` : ""}
+        <dt>Meaning</dt><dd>${esc(c.meaning)}</dd>
+      </dl>`;
+    scene.setLit([c.seph], []);
+    setHud(`${esc(c.name)}`, `${esc(c.title)} · ${esc(sp.name)} in ${esc(w.name)}`);
+  }
+  $(".close", d).addEventListener("click", () => { d.hidden = true; tarotSelected = null; scene.clearLit(); $$(".tcard").forEach(b => b.classList.remove("active")); });
+  d.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+tarotFilter.addEventListener("change", () => { store.set("tarotFilter", tarotFilter.value); renderTarotGrid(); });
+tarotSearch.addEventListener("input", renderTarotGrid);
+{
+  const T = Object.fromEntries(TAROT_SOURCES.map(s => [s.key, s]));
+  const tags = keys => `<span class="src">${keys.map(k => `<span class="src-tag" title="${esc(T[k].cite)}">${esc(T[k].cite.split(",")[0])}</span>`).join("")}</span>`;
+  $("#tarot-uses").innerHTML = TAROT_USES.map(u => `<div class="method"><strong>${esc(u.title)}</strong><p>${esc(u.text)}</p>${tags(u.src)}</div>`).join("");
+  $("#tarot-secret").innerHTML = `<strong class="secret-title">${esc(TAROT_SECRET.title)}</strong>${TAROT_SECRET.text.map(t => `<p>${esc(t)}</p>`).join("")}`;
+  $("#tarot-sources").innerHTML = `<ul class="sources">${TAROT_SOURCES.map(s => `<li>${esc(s.cite)}</li>`).join("")}</ul>`;
+}
+renderTarotGrid();
 
 /* ───────────── GUIDE tab: preparation ───────────── */
 const SRC_BY_KEY = Object.fromEntries(SOURCES.map(s => [s.key, s]));
@@ -586,7 +742,7 @@ function blankEntry(n = guide.n) {
     intention: `I travel the ${ord(n)} path, ${p.name}, from ${lower.name} to ${upper.name}, and I return by the same road.`,
     visual: `Temple of ${lower.name}; door with ${p.letter} ${p.name} in ${p.colorName}; ${p.tarot}; Temple of ${upper.name}.`,
     met: "", experience: "", gift: "", moodBefore: 3, moodAfter: 3, body: "", grounded: false, difficulty: 3,
-    effects: [], ready: false, vice: "", virtue: "",
+    effects: [], results: {}, ready: false, vice: "", virtue: "",
   };
 }
 function entryFromGuide() {
@@ -597,7 +753,38 @@ function entryFromGuide() {
   if (guide.steps.some(s => s.protect === "cross")) e.protection.push("cross");
   e.protection = [...new Set(e.protection)];
   e.experience = store.get("notes." + guide.n, "");
+  // the guide itself spoke the Names and used the sign: tick those as used
+  const p = PATH_BY_N[guide.n];
+  e.materials = sessionNeeds(p, SEPH_BY_KEY[p.to], SEPH_BY_KEY[p.from], MAJOR_BY_PATH[p.n]).filter(n => n.group === "Words").map(n => n.text);
   return e;
+}
+
+/* Result categories: the defaults plus whatever the user adds. */
+function effectKinds() { return [...new Set([...DEFAULT_EFFECT_KINDS, ...store.get("effectKinds", [])])]; }
+function addEffectKind(name) {
+  name = (name || "").trim(); if (!name) return;
+  const custom = store.get("effectKinds", []);
+  if (!effectKinds().some(k => k.toLowerCase() === name.toLowerCase())) { custom.push(name); store.set("effectKinds", custom); }
+}
+function dropEffectKind(name) { store.set("effectKinds", store.get("effectKinds", []).filter(k => k !== name)); }
+const STATES = [["better", "better"], ["same", "same"], ["worse", "worse"]];
+
+/* What this session should have had ready, grouped, as a checklist. Checked items are stored by text in e.materials. */
+function needsHTML(e) {
+  const p = PATH_BY_N[e.path], lower = SEPH_BY_KEY[p.to], upper = SEPH_BY_KEY[p.from];
+  const needs = sessionNeeds(p, lower, upper, MAJOR_BY_PATH[p.n]);
+  const groups = [...new Set(needs.map(n => n.group))];
+  const done = needs.filter(n => e.materials.includes(n.text)).length;
+  return `<div class="needs-head"><span>For the ${ord(p.n)} path, ${esc(p.name)} (${esc(lower.name)} → ${esc(upper.name)})</span><span class="needs-count">${done}/${needs.length} used</span><button class="btn btn-sm" type="button" id="needs-all">Mark all used</button></div>
+    ${groups.map(g => `<div class="needs-group"><div class="needs-g">${esc(g)}</div>${needs.filter(n => n.group === g).map(n => `<label class="toggle"><input type="checkbox" name="materials" value="${esc(n.text)}" ${e.materials.includes(n.text) ? "checked" : ""}> ${esc(n.text)}</label>`).join("")}</div>`).join("")}
+    <div class="needs-group"><div class="needs-g">General</div>${JOURNAL_MATERIALS.map(m => `<label class="toggle"><input type="checkbox" name="materials" value="${esc(m)}" ${e.materials.includes(m) ? "checked" : ""}> ${esc(m)}</label>`).join("")}</div>`;
+}
+function kindOptions(sel) {
+  return effectKinds().map(k => `<option ${k === sel ? "selected" : ""}>${esc(k)}</option>`).join("") + `<option value="__add">+ Add a category…</option><option value="__manage">Manage categories…</option>`;
+}
+function resultsHTML(e) {
+  const r = e.results || {};
+  return effectKinds().map(k => { const v = r[k] || {}; return `<div class="result-row" data-kind="${esc(k)}"><span class="r-kind">${esc(k)}</span><span class="r-states">${STATES.map(([s, l]) => `<button type="button" class="r-state ${v.state === s ? "on " + s : ""}" data-s="${s}">${l}</button>`).join("")}</span><input class="r-note" placeholder="what happened" value="${esc(v.note || "")}"><span class="r-count">${(e.effects || []).filter(f => f.kind === k).length || ""}</span></div>`; }).join("");
 }
 
 let jEditing = null;
@@ -624,8 +811,8 @@ function journalEdit(e) {
       <label class="field">Place<input name="location" placeholder="room, temple, outdoors…" value="${esc(e.location)}"></label>
     </div>
 
-    <h3 class="jh">Preparation</h3>
-    <div class="checks">${JOURNAL_MATERIALS.map(m => `<label class="toggle"><input type="checkbox" name="materials" value="${esc(m)}" ${e.materials.includes(m) ? "checked" : ""}> ${esc(m)}</label>`).join("")}</div>
+    <h3 class="jh">What this session needed <span class="sub">tick what was used</span></h3>
+    <div class="checks needs" id="j-needs">${needsHTML(e)}</div>
     <label class="field">Other materials<input name="materialsOther" placeholder="e.g. sandalwood incense, violet candle" value="${esc(e.materialsOther)}"></label>
     <label class="field">Tools used<input name="tools" placeholder="wand, cup, tarot card, pointing hand…" value="${esc(e.tools)}"></label>
     <div class="row2">
@@ -659,10 +846,13 @@ function journalEdit(e) {
     <div class="effects" id="j-effects">${e.effects.map((f, i) => `<div class="effect"><span class="ef-date">${fmtDay(f.date)}</span><span class="ef-kind">${esc(f.kind)}</span><span class="ef-text">${esc(f.text)}</span><button type="button" class="ef-del" data-i="${i}" aria-label="Remove">×</button></div>`).join("") || `<p class="note">Nothing recorded yet. Dreams, moods, coincidences, health, money, relationships, work: the path shows itself in the week after.</p>`}</div>
     <div class="ef-add">
       <input type="date" id="ef-date" value="${new Date().toISOString().slice(0, 10)}">
-      <select id="ef-kind"><option>Dream</option><option>Mood</option><option>Synchronicity</option><option>Health</option><option>Relationship</option><option>Work / money</option><option>Insight</option><option>Other</option></select>
+      <select id="ef-kind">${kindOptions(e._lastKind)}</select>
       <input id="ef-text" placeholder="What happened">
       <button class="btn" type="button" id="ef-plus">+</button>
     </div>
+
+    <h3 class="jh">Results by category <span class="sub">how each area went in the days after</span></h3>
+    <div class="results" id="j-results">${resultsHTML(e)}</div>
 
     <h3 class="jh">Integration · ${esc(SEPH_BY_KEY[p.from].name)}</h3>
     <p class="note">Virtue: <em>${esc(INTEGRATION.virtues[p.from].virtue)}</em> · Vice: <em>${esc(INTEGRATION.virtues[p.from].vice)}</em></p>
@@ -676,10 +866,29 @@ function journalEdit(e) {
     </div>`;
   $(".close", ed).addEventListener("click", () => { jEditing = null; ed.hidden = true; });
   $$(".scale button", ed).forEach(b => b.addEventListener("click", () => { const sc = b.closest(".scale"); $$("button", sc).forEach(x => x.classList.toggle("on", x === b)); }));
-  $("select[name=path]", ed).addEventListener("change", ev => { const n = +ev.target.value; scene.setLit([PATH_BY_N[n].from, PATH_BY_N[n].to], [n]); });
+  $("select[name=path]", ed).addEventListener("change", ev => { const n = +ev.target.value; scene.setLit([PATH_BY_N[n].from, PATH_BY_N[n].to], [n]); journalCollect(e); $("#j-needs", ed).innerHTML = needsHTML(e); bindNeeds(); });
+  const needsCount = () => { const all = $$("#j-needs .needs-group:not(:last-child) [name=materials]", ed); $(".needs-count", ed).textContent = `${all.filter(c => c.checked).length}/${all.length} used`; };
+  const bindNeeds = () => {
+    $("#needs-all", ed)?.addEventListener("click", () => { $$("#j-needs [name=materials]", ed).forEach(c => (c.checked = true)); needsCount(); });
+    $$("#j-needs [name=materials]", ed).forEach(c => c.addEventListener("change", needsCount));
+  };
+  bindNeeds();
+  $("#ef-kind", ed).addEventListener("change", ev => {
+    const v = ev.target.value;
+    if (v === "__add") { const name = prompt("New category for effects in reality (e.g. Creativity, Sleep, Family):"); addEffectKind(name); e._lastKind = name && name.trim(); journalCollect(e); journalEdit(e); }
+    else if (v === "__manage") {
+      const custom = store.get("effectKinds", []);
+      if (!custom.length) { toast("Only the default categories exist; add one first"); ev.target.value = effectKinds()[0]; return; }
+      const name = prompt(`Your added categories:\n${custom.join(", ")}\n\nType one to take it off the list, or leave blank to keep all:`);
+      if (name && custom.includes(name.trim())) { dropEffectKind(name.trim()); toast(`Category “${name.trim()}” taken off the list`); }
+      journalCollect(e); journalEdit(e);
+    } else e._lastKind = v;
+  });
+  $$(".r-state", ed).forEach(b => b.addEventListener("click", () => { const row = b.closest(".result-row"); const on = b.classList.contains("on"); $$(".r-state", row).forEach(x => (x.className = "r-state")); if (!on) b.classList.add("on", b.dataset.s); }));
   $("#ef-plus", ed).addEventListener("click", () => {
     const text = $("#ef-text", ed).value.trim(); if (!text) return;
-    e.effects.push({ date: $("#ef-date", ed).value || new Date().toISOString().slice(0, 10), kind: $("#ef-kind", ed).value, text });
+    const kind = $("#ef-kind", ed).value; if (kind.startsWith("__")) return;
+    e.effects.push({ date: $("#ef-date", ed).value || new Date().toISOString().slice(0, 10), kind, text });
     journalCollect(e); journalEdit(e);
   });
   $$(".ef-del", ed).forEach(b => b.addEventListener("click", () => { e.effects.splice(+b.dataset.i, 1); journalCollect(e); journalEdit(e); }));
@@ -701,6 +910,8 @@ function journalCollect(e) {
   for (const k of ["date", "location", "materialsOther", "tools", "state", "conditions", "intention", "words", "visual", "met", "experience", "gift", "body", "virtue", "vice"]) { const el = $(`[name=${k}]`, ed); if (el) e[k] = el.value; }
   e.path = +$("[name=path]", ed).value; e.duration = +$("[name=duration]", ed).value || 0;
   e.materials = $$("[name=materials]:checked", ed).map(x => x.value);
+  e.results = {};
+  $$(".result-row", ed).forEach(row => { const on = $(".r-state.on", row); const note = $(".r-note", row).value.trim(); if (on || note) e.results[row.dataset.kind] = { state: on ? on.dataset.s : "", note }; });
   e.protection = $$("[name=protection]:checked", ed).map(x => x.value);
   e.grounded = $("[name=grounded]", ed).checked; e.ready = $("[name=ready]", ed).checked;
   for (const k of ["moodBefore", "moodAfter", "difficulty"]) { const on = $(`.scale[data-name=${k}] button.on`, ed); e[k] = on ? +on.dataset.v : null; }
@@ -727,6 +938,7 @@ function journalRender() {
       <div class="j-row"><span class="dot" style="background:${p.color}"></span><strong>Path ${e.path} · ${esc(p.name)} <span class="heb">${esc(p.letter)}</span></strong><span class="j-date">${fmtDate(e.date)}</span></div>
       <div class="j-meta">${e.duration ? `${e.duration} min · ` : ""}protection ${prot}/${PROTECTION_STEPS.length}${e.grounded ? " · grounded" : ""}${e.moodBefore && e.moodAfter ? ` · mood ${e.moodBefore}→${e.moodAfter}` : ""}${e.effects?.length ? ` · ${e.effects.length} effect${e.effects.length === 1 ? "" : "s"}` : ""}${e.ready ? ' · <span class="ok">ready</span>' : ""}</div>
       ${e.experience ? `<p class="j-text">${esc(e.experience).slice(0, 220)}${e.experience.length > 220 ? "…" : ""}</p>` : ""}
+      ${e.results && Object.keys(e.results).length ? `<div class="j-results">${Object.entries(e.results).filter(([, v]) => v.state).map(([k, v]) => `<span class="rs ${v.state}">${esc(k)} ${v.state === "better" ? "▲" : v.state === "worse" ? "▼" : "•"}</span>`).join("")}</div>` : ""}
       ${e.effects?.length ? `<div class="j-effects">${e.effects.slice(-3).map(f => `<span><b>${esc(f.kind)}</b> ${fmtDay(f.date)}: ${esc(f.text).slice(0, 90)}</span>`).join("")}</div>` : ""}
     </article>`;
   }).join("");
@@ -761,6 +973,7 @@ $("#j-export-md").addEventListener("click", () => {
     L.push(`- Grounded: ${e.grounded ? "yes" : "no"} · Ready to proceed: ${e.ready ? "yes" : "no"}`);
     if (e.experience) L.push("", "### The journey", "", e.experience);
     if (e.effects?.length) L.push("", "### Effects in reality", "", ...e.effects.map(f => `- ${f.date} · ${f.kind}: ${f.text}`));
+    if (e.results && Object.keys(e.results).length) L.push("", "### Results by category", "", ...Object.entries(e.results).map(([k, v]) => `- ${k}: ${v.state || "—"}${v.note ? ` — ${v.note}` : ""}`));
     if (e.virtue || e.vice) L.push("", "### Integration", "", e.virtue ? `- Virtue showed: ${e.virtue}` : "", e.vice ? `- Vice faced: ${e.vice}` : "");
     return L.filter(x => x !== undefined).join("\n");
   })).join("\n\n");

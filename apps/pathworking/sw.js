@@ -1,6 +1,6 @@
 /* Pathworking service worker — offline-first app shell.
    Everything the app needs (including the vendored Three.js build) is cached on install. */
-const CACHE = "pathworking-v2";
+const CACHE = "pathworking-v3";
 const SHELL = [
   "./",
   "./index.html",
@@ -9,6 +9,8 @@ const SHELL = [
   "./tree.js",
   "./data.js",
   "./guide.js",
+  "./worlds.js",
+  "./tarot.js",
   "./vendor/three.module.min.js",
   "./manifest.webmanifest",
   "./icons/icon.svg",

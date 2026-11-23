@@ -56,6 +56,8 @@
       <button class="tab" role="tab" data-tab="descent" aria-selected="false">Descent</button>
       <button class="tab" role="tab" data-tab="ascent" aria-selected="false">Ascent</button>
       <button class="tab" role="tab" data-tab="names" aria-selected="false">72 Names</button>
+      <button class="tab" role="tab" data-tab="worlds" aria-selected="false">Worlds</button>
+      <button class="tab" role="tab" data-tab="tarot" aria-selected="false">Tarot</button>
       <button class="tab" role="tab" data-tab="guide" aria-selected="false">Guide</button>
       <button class="tab" role="tab" data-tab="journal" aria-selected="false">Journal</button>
     </nav>
@@ -72,6 +74,7 @@
           <label class="toggle"><input type="checkbox" data-opt="pillars" checked> Three Pillars</label>
           <label class="toggle"><input type="checkbox" data-opt="ring" checked> Shem HaMephorash ring</label>
           <label class="toggle"><input type="checkbox" data-opt="autoRotate"> Slow rotation</label>
+          <label class="toggle"><input type="checkbox" data-opt="ladder"> Worlds above &amp; below</label>
         </div>
         <label class="field">Ring placement
           <select id="ring-place">
@@ -144,6 +147,56 @@
         <div id="shem-detail" class="card" hidden></div>
         <div id="shem-derivation" class="derivation" hidden></div>
         <div id="shem-grid" class="shem-grid"></div>
+      </section>
+
+      <!-- WORLDS -->
+      <section class="tabpanel" data-tab="worlds" role="tabpanel" hidden>
+        <p class="lead">The Tree you see is the Tree of one World. Four Worlds rise above it in ever subtler substance, and four Shells hang inverted below it. Tap a World on the model or in the list for its attributes.</p>
+        <label class="toggle"><input type="checkbox" id="ladder-toggle"> Show the Worlds above and the Shells below on the model (Jacob's Ladder)</label>
+        <h2 class="h">The Four Worlds above</h2>
+        <div id="worlds-list" class="world-list"></div>
+        <h2 class="h">The Four Shells below</h2>
+        <div id="shells-list" class="world-list"></div>
+        <div id="world-detail" class="card" hidden></div>
+        <details class="prep-sec" data-sec="ladder">
+          <summary><span class="prep-num">§</span> Jacob's Ladder <span class="prep-sub">how the Worlds join</span></summary>
+          <div class="prep-body" id="ladder-note"></div>
+        </details>
+        <details class="prep-sec prep-danger" data-sec="qliphoth">
+          <summary><span class="prep-num">!</span> The ten Qliphoth <span class="prep-sub">the shadow of each Sephirah</span></summary>
+          <div class="prep-body" id="qliphoth-note"></div>
+        </details>
+      </section>
+
+      <!-- TAROT -->
+      <section class="tabpanel" data-tab="tarot" role="tabpanel" hidden>
+        <p class="lead">The seventy-eight cards laid on the Tree: the twenty-two trumps on the paths, the forty pips on the Sephiroth in the four Worlds, the sixteen court cards on the letters of the Name. Tap a card; the model lights where it lives.</p>
+        <div class="row2">
+          <label class="field">Show
+            <select id="tarot-filter">
+              <option value="major">Major Arcana · the 22 trumps</option>
+              <option value="wands">Wands · Fire · Atziluth</option>
+              <option value="cups">Cups · Water · Briah</option>
+              <option value="swords">Swords · Air · Yetzirah</option>
+              <option value="pentacles">Pentacles · Earth · Assiah</option>
+            </select>
+          </label>
+          <label class="field">Find a card<input id="tarot-search" type="search" placeholder="name, path, title"></label>
+        </div>
+        <div id="tarot-detail" class="card" hidden></div>
+        <div id="tarot-grid" class="tarot-grid"></div>
+        <details class="prep-sec" data-sec="tarot-uses">
+          <summary><span class="prep-num">1</span> How the Tarot is used <span class="prep-sub">pathworking, meditation, divination</span></summary>
+          <div class="prep-body" id="tarot-uses"></div>
+        </details>
+        <details class="prep-sec" data-sec="tarot-secret">
+          <summary><span class="prep-num">2</span> The hidden teaching <span class="prep-sub">what the cards keep, and who kept them</span></summary>
+          <div class="prep-body" id="tarot-secret"></div>
+        </details>
+        <details class="prep-sec" data-sec="tarot-sources">
+          <summary><span class="prep-num">§</span> Sources</summary>
+          <div class="prep-body" id="tarot-sources"></div>
+        </details>
       </section>
 
       <!-- GUIDE -->

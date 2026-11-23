@@ -325,3 +325,54 @@ export const JOURNAL_MATERIALS = [
   "Tarot trump of the path, displayed", "Salt, water, feather, flame (the four elements)", "Wand or pointing hand", "Journal and pen ready",
   "Phone silenced, door locked", "Water and food for afterwards",
 ];
+
+/* ─── What a session needs: correspondences for preparation (777 cols. 42 (perfumes), 12 (colours)) ─── */
+export const INCENSE = {
+  kether: "ambergris", chokmah: "musk", binah: "myrrh or civet", daath: "—", chesed: "cedar", geburah: "tobacco or pepper",
+  tiphareth: "olibanum (frankincense)", netzach: "benzoin, rose or red sandalwood", hod: "storax", yesod: "jasmine or ginseng", malkuth: "dittany of Crete",
+};
+export const PATH_PERFUME = {
+  11: "galbanum", 12: "mastic or white sandalwood", 13: "camphor or aloes", 14: "sandalwood or myrtle", 15: "dragon's blood", 16: "storax",
+  17: "wormwood", 18: "onycha", 19: "olibanum", 20: "narcissus", 21: "saffron", 22: "galbanum", 23: "onycha or myrrh", 24: "benzoin or opoponax",
+  25: "lign-aloes", 26: "musk or civet", 27: "pepper or dragon's blood", 28: "galbanum", 29: "ambergris", 30: "olibanum or cinnamon", 31: "olibanum", 32: "asafoetida or sulphur (storax for the Earth aspect)",
+};
+export const PLANET_DAY = { Saturn: "Saturday", Jupiter: "Thursday", Mars: "Tuesday", Sun: "Sunday", Venus: "Friday", Mercury: "Wednesday", Moon: "Monday" };
+const SIGN_RULER = { Aries: "Mars", Taurus: "Venus", Gemini: "Mercury", Cancer: "Moon", Leo: "Sun", Virgo: "Mercury", Libra: "Venus", Scorpio: "Mars", Sagittarius: "Jupiter", Capricorn: "Saturn", Aquarius: "Saturn", Pisces: "Jupiter" };
+export function pathPlanet(attr) {
+  const first = attr.split(/[\s/]+/)[0];
+  if (PLANET_DAY[first]) return first;
+  if (SIGN_RULER[first]) return SIGN_RULER[first];
+  return null; // the three elemental paths: any day
+}
+
+/* Everything a session on path n should have ready, as a checklist. Each item: { group, text }. */
+export function sessionNeeds(p, lower, upper, major) {
+  const planet = pathPlanet(p.attr);
+  const items = [];
+  const add = (group, text) => items.push({ group, text });
+  add("Time", planet ? `Day: ${PLANET_DAY[planet]} (${planet}); or the hour of ${planet}` : `Any day; the path is elemental (${p.attr})`);
+  add("Time", "Not within an hour of a full meal; not tired; no alcohol or drugs that day");
+  add("Space", "Room prepared: door locked, phone silenced, light low, chair or cushion facing east");
+  add("Space", "Altar or small table with cloth; the four elements on it: salt, water, feather or fan, candle");
+  add("Candles", `Path candle: ${p.colorName} (${p.name})`);
+  add("Candles", `Temple of departure: ${lower.colorName} (${lower.name})`);
+  add("Candles", `Temple of arrival: ${upper.colorName} (${upper.name})`);
+  add("Incense", `${INCENSE[lower.key]} for ${lower.name}`);
+  add("Incense", `${PATH_PERFUME[p.n]} for the path of ${p.name}`);
+  add("Incense", `${INCENSE[upper.key]} for ${upper.name}`);
+  add("Images", `Tarot trump displayed: ${p.tarot}${major ? ` (${major.title})` : ""}`);
+  add("Images", `The letter ${p.letter} ${p.name} drawn large in ${p.colorName}, to study before closing the eyes`);
+  add("Tools", "Wand or the right hand for tracing; robe or dedicated clothing; journal and pen");
+  add("Words", `Divine Name of ${lower.name}: ${lower.godName} (vibrated three times)`);
+  add("Words", `Archangel of ${lower.name}: ${lower.archangel}`);
+  add("Words", `Name of the letter: ${p.name} (opens the door)`);
+  add("Words", `Divine Name of ${upper.name}: ${upper.godName}`);
+  add("Words", `Archangel of ${upper.name}: ${upper.archangel}`);
+  add("Words", "Kabbalistic Cross: Ateh · Malkuth · ve-Geburah · ve-Gedulah · le-Olam, Amen");
+  add("Words", "Banishing quarters: YHVH · Adonai · Eheieh · AGLA");
+  add("Afterwards", "Bread and salt or a proper meal; water; something to stamp on; the journal within the hour");
+  return items;
+}
+
+/* Default categories for effects in reality; the user can add to these in the Journal. */
+export const DEFAULT_EFFECT_KINDS = ["Dreams", "Moods", "Coincidences", "Health", "Money", "Relationships", "Work"];
