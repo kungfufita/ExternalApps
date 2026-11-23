@@ -32,6 +32,7 @@
       <option value="phone">Phone</option>
       <option value="desktop">Desktop</option>
     </select>
+    <button id="speak-tap" class="btn btn-ghost speak-tap" type="button" aria-pressed="true" title="Speak on tap">🔊</button>
     <button id="share-btn" class="btn btn-ghost" type="button" title="Share this app">
       <span aria-hidden="true">⇪</span><span class="share-label"> Share</span>
     </button>
@@ -251,6 +252,7 @@
         <details class="prep-sec" data-sec="voice">
           <summary><span class="prep-num">🔊</span> Voice <span class="prep-sub">hear the Names; read steps aloud</span></summary>
           <div class="prep-body" id="voice-box">
+            <label class="toggle"><input id="voice-tap" type="checkbox"> Speak on tap: anything tapped says its name (also the 🔊 in the top bar)</label>
             <label class="toggle"><input id="guide-read" type="checkbox"> Read each step aloud as it begins (eyes closed)</label>
             <label class="toggle"><input id="voice-vibrate" type="checkbox"> Vibrate slowly: draw out each syllable of a Name</label>
             <label class="field">Voice<select id="voice-sel"></select></label>

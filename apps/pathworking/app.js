@@ -236,10 +236,10 @@ function selectPath(n) {
   setHud(`Path ${n} · ${esc(p.name)} <span class="heb">${esc(p.letter)}</span>`, `${esc(SEPH_BY_KEY[p.to].name)} ↔ ${esc(SEPH_BY_KEY[p.from].name)} · ${esc(p.attr)} · ${esc(p.tarot)}`);
 }
 scene.onSelect = sel => {
-  if (sel.type === "sephirah") selectSephirah(sel.key);
-  else if (sel.type === "path") selectPath(sel.n);
-  else if (sel.type === "shem") { setMode("names"); selectShem(sel.n); }
-  else if (sel.type === "world") selectWorld(sel.key, { fromScene: true });
+  if (sel.type === "sephirah") { selectSephirah(sel.key); tapSay(SEPH_BY_KEY[sel.key].name); }
+  else if (sel.type === "path") { selectPath(sel.n); tapSay(`Path ${sel.n}, ${PATH_BY_N[sel.n].name}`); }
+  else if (sel.type === "shem") { setMode("names"); selectShem(sel.n); tapSay(shem.names[sel.n - 1].angel); }
+  else if (sel.type === "world") { selectWorld(sel.key, { fromScene: true }); tapSay(sel.key === "esh" ? "Esh Mitlakachat" : sel.key === "anan" ? "Anan Gadol" : sel.key === "ruach" ? "Ruach Se'arah" : sel.key[0].toUpperCase() + sel.key.slice(1)); }
 };
 
 $$("[data-opt]").forEach(cb => {
@@ -762,6 +762,41 @@ document.addEventListener("click", e => {
   const b = e.target.closest("[data-say]"); if (!b) return;
   e.preventDefault();
   if (!speech.sayName(b.dataset.say)) toast("This browser has no speech voices");
+});
+
+/* ───────────── speak on tap: everything clickable says its name ───────────── */
+let speakTap = store.get("speakTap", true);
+const tapBtn = $("#speak-tap");
+function renderTapBtn() { tapBtn.textContent = speakTap ? "🔊" : "🔇"; tapBtn.setAttribute("aria-pressed", String(speakTap)); tapBtn.title = speakTap ? "Speak on tap is on: tap anything to hear it. Tap to turn off." : "Speak on tap is off. Tap to turn on."; $("#voice-tap").checked = speakTap; }
+function setSpeakTap(v) { speakTap = v; store.set("speakTap", v); renderTapBtn(); if (!v) speech.stop(); }
+tapBtn.addEventListener("click", () => { setSpeakTap(!speakTap); if (speakTap) speech.read("Speak on tap is on"); });
+$("#voice-tap").addEventListener("change", e => setSpeakTap(e.target.checked));
+renderTapBtn();
+/* say a short label for whatever was tapped; names inside are respelled */
+function tapSay(text) { if (speakTap && text) speech.read(String(text).replace(/\s+/g, " ").trim()); }
+const clean = el => { const c = el.cloneNode(true); $$("svg, figure, .say, .say-ico, .sub, .meta, .num, .dot, .swatch, .close, .prep-sub, .prep-num, .tag, .heb", c).forEach(x => x.remove()); return c.textContent.replace(/[🔊🔇⛨▶◀❚⏮⇩⇧✎⟲☰×+·|]/g, " ").replace(/\s+/g, " ").trim(); };
+document.addEventListener("click", e => {
+  if (!speakTap || e.target.closest("[data-say], #speak-tap, .close, input, textarea, select, option, .toggle")) return;
+  const el = e.target.closest(".chip, .shem, .tcard, .world-chip, .steps li, .tab, summary, .j-entry, .btn, .icon-btn, .r-state, .scale button, .jp, [data-act]");
+  if (!el) return;
+  let text = "";
+  if (el.matches(".chip")) { const id = el.dataset.id; text = id.startsWith("s:") ? SEPH_BY_KEY[id.slice(2)].name : `Path ${id.slice(2)}, ${PATH_BY_N[+id.slice(2)].name}`; }
+  else if (el.matches(".shem")) { speech.sayName(shem.names[+el.dataset.n - 1].angel); return; }
+  else if (el.matches(".tcard")) text = `${$(".t-name", el).textContent}. ${$(".t-sub", el).textContent.split("\n")[0].replace(/[֐-׿]+/g, "").replace(/·/g, ",")}`;
+  else if (el.matches(".world-chip")) text = $(".w-name", el).textContent.replace(/[֐-׿]+/g, "");
+  else if (el.matches(".steps li")) text = $(".lbl", el)?.firstChild?.textContent || clean(el);
+  else if (el.matches(".j-entry")) text = $(".j-row strong", el).textContent.replace(/[֐-׿]+/g, "");
+  else if (el.matches(".jp")) text = `Path ${el.textContent}${el.classList.contains("on") ? ", worked" : ""}`;
+  else if (el.matches(".r-state")) text = `${el.closest(".result-row")?.dataset.kind}: ${el.textContent}`;
+  else if (el.matches(".icon-btn")) text = el.getAttribute("aria-label") || el.title;
+  else text = clean(el) || el.getAttribute("aria-label") || el.title;
+  tapSay(text);
+}, true); // capture: read the label before the tap changes it
+/* selects say the option chosen; toggles say their new state */
+document.addEventListener("change", e => {
+  const t = e.target; if (!speakTap) return;
+  if (t.matches("select") && t.id !== "voice-sel") { const o = t.options[t.selectedIndex]; if (o && !o.value.startsWith("__")) tapSay(o.textContent.replace(/[֐-׿]+/g, "")); }
+  else if (t.matches(".toggle input[type=checkbox]") && t.id !== "voice-tap") { const l = t.closest(".toggle"); tapSay(`${clean(l)}, ${t.checked ? "on" : "off"}`); }
 });
 $("#guide-auto").addEventListener("change", e => store.set("guideAuto", e.target.checked));
 $("#guide-breath").addEventListener("change", e => { store.set("guideBreath", e.target.checked); $("#breath").hidden = !e.target.checked; });

@@ -2,9 +2,13 @@
    Newest first. Each entry: version, date, title, and items tagged
    feature | adjusted | fixed | content. Add a new entry at the top for every release. */
 
-export const APP_VERSION = "1.4.0";
+export const APP_VERSION = "1.4.1";
 
 export const CHANGELOG = [
+  { version: "1.4.1", date: "2026-11-23", title: "Speak on tap",
+    items: [
+      { type: "feature", text: "Speak on tap: with the 🔊 switch in the top bar on (it is on by default), anything tapped says its name: Sephiroth and paths on the model or in the lists, the 72 Names, tarot cards, Worlds and Shells, steps in the Descent, Ascent and Guide, tabs, section headings, toggles, buttons, journal entries and menu choices. Names are respelled as they are spoken. Turn it off with the same switch or in Guide → Voice." },
+    ] },
   { version: "1.4.0", date: "2026-11-23", title: "Pronunciation and read-aloud",
     items: [
       { type: "feature", text: "Text to speech with the browser's own voices (offline, no account): a speaker button beside every Divine Name, Archangel, choir, Sephirah, letter, World, Shell, angel of the 72 and ritual word, with a phonetic respelling in the tooltip." },

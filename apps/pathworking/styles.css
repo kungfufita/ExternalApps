@@ -452,3 +452,6 @@ body.narrow .layout-pick { min-width: 0; }
 #voice-box .toggle { min-height: 34px; }
 
 body.wide .panel-grip-hint { display: none; }
+
+.speak-tap { font-size: 18px; padding: 0 10px; }
+.speak-tap[aria-pressed="true"] { color: var(--gold); border-color: rgba(242, 209, 75, 0.5); }
