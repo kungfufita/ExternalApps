@@ -9,12 +9,15 @@ import * as THREE from "./vendor/three.module.min.js";
 import {
   SEPHIROTH, SEPH_BY_KEY, PATHS, PATH_BY_N, PILLAR, WORLDS, sephPos, SERPENT_ORDER,
 } from "./data.js";
+import { FOUR_WORLDS, FOUR_SHELLS } from "./worlds.js";
 
 const Y_OFF = -4;                 // centre the Tree (0..8) on the origin
 const tv = (x, y, z = 0) => new THREE.Vector3(x, y + Y_OFF, z);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* Jacob's Ladder: four ghost Trees above (the Worlds) and four inverted below (the Shells) */
+const LADDER_SCALE = 0.5, LADDER_STEP = 5.2, LADDER_HEIGHT = 13.2 + 2 * 4 * LADDER_STEP + 2;
 
 /* ───────────── canvas helpers ───────────── */
 function makeTextTexture({ lines, font = "600 44px system-ui, 'Segoe UI', sans-serif", hebrewFont = "500 64px 'Noto Serif Hebrew', 'David', 'Times New Roman', serif", color = "#fff", shadow = "rgba(0,0,0,.65)", width = 320, height = 160 }) {
@@ -174,10 +177,10 @@ class Orbit {
 /* ───────────── the scene ───────────── */
 export class TreeScene {
   /* fit the Tree (12.4 units tall, 7.4 wide) into the visible fraction of the frustum */
-  static fitRadius(fit) {
+  static fitRadius(fit, tall = false) {
     const fov = THREE.MathUtils.degToRad(48), t = Math.tan(fov / 2);
     const f = fit || { h: 1, w: 1 };
-    const h = 13.2 / (2 * t * Math.max(f.h, 0.05));
+    const h = (tall ? LADDER_HEIGHT : 13.2) / (2 * t * Math.max(f.h, 0.05));
     const w = 7.4 / (2 * t * Math.max(f.w, 0.05));
     return clamp(Math.max(h, w) * 1.03, 6, 140);
   }
@@ -205,7 +208,7 @@ export class TreeScene {
     this.lit = { sephiroth: new Set(), paths: new Set() };
     this.flashState = { seq: [], progress: -1, visible: false };
     this.serpentState = { progress: 0, visible: false, kind: "serpent" };
-    this.options = { labels: true, pathLabels: true, worlds: true, pillars: true, daath: true, ring: true, ringPlace: "base" };
+    this.options = { labels: true, pathLabels: true, worlds: true, pillars: true, daath: true, ring: true, ringPlace: "base", ladder: false };
 
     this.buildLights();
     this.buildStars();
@@ -215,6 +218,7 @@ export class TreeScene {
     this.buildSephiroth();
     this.buildFlash();
     this.buildSerpent();
+    this.buildLadder();
     this.ring = null; // built lazily via setShem()
 
 
@@ -507,6 +511,67 @@ export class TreeScene {
 
   showSerpent(v) { this.serpentGroup.visible = v; this.serpentState.visible = v; }
 
+  /* ---- Jacob's Ladder: the Worlds above and the Shells below ---- */
+  buildLadder() {
+    this.ladderGroup = new THREE.Group();
+    this.ladderGroup.visible = false;
+    this.ladderItems = [];
+    const makeTree = (key, color, tone, label, sub, yCenter, inverted, depth) => {
+      const g = new THREE.Group();
+      const col = new THREE.Color(color), ton = new THREE.Color(tone);
+      const alpha = 0.9 - depth * 0.15;
+      const lineMat = new THREE.LineBasicMaterial({ color: ton, transparent: true, opacity: 0.35 * alpha, depthWrite: false });
+      const pts = [];
+      for (const p of PATHS) {
+        const a = sephPos(SEPH_BY_KEY[p.from]), b = sephPos(SEPH_BY_KEY[p.to]);
+        pts.push(new THREE.Vector3(a.x, a.y - 4, 0), new THREE.Vector3(b.x, b.y - 4, 0));
+      }
+      const lg = new THREE.BufferGeometry().setFromPoints(pts);
+      g.add(new THREE.LineSegments(lg, lineMat));
+      const sphGeo = new THREE.SphereGeometry(0.3, 18, 12);
+      const sphMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.55 * alpha, depthWrite: false });
+      for (const s of SEPHIROTH) {
+        if (s.hidden) continue;
+        const { x, y } = sephPos(s);
+        const m = new THREE.Mesh(sphGeo, sphMat);
+        m.position.set(x, y - 4, 0);
+        m.userData = { world: key };
+        g.add(m);
+      }
+      // a faint plate behind, tinted, so each World reads as a band
+      const plate = new THREE.Mesh(new THREE.PlaneGeometry(7.4, 9.6), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.035, side: THREE.DoubleSide, depthWrite: false }));
+      plate.position.set(0, 0, -0.6);
+      g.add(plate);
+      g.scale.setScalar(LADDER_SCALE);
+      if (inverted) g.rotation.z = Math.PI;
+      g.position.set(0, yCenter, 0);
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeTextTexture({ lines: [{ text: label, font: "600 40px system-ui, sans-serif", color: tone, gap: 46 }, { text: sub, font: "500 26px system-ui, sans-serif", color: "#c9cbe0", gap: 46 }], width: 420, height: 110 }), transparent: true, opacity: 0.85, depthWrite: false }));
+      sp.scale.set(3.2, 0.84, 1);
+      sp.position.set(3.4 * LADDER_SCALE + 2.4, yCenter, 0.2);
+      sp.userData = { world: key };
+      this.ladderGroup.add(g, sp);
+      this.ladderItems.push({ key, group: g, sprite: sp, mats: [lineMat, sphMat, plate.material], base: [lineMat.opacity, sphMat.opacity, plate.material.opacity], y: yCenter });
+    };
+    // above: Assiah nearest, Atziluth highest. Below: Nogah nearest, Ruach Se'arah lowest.
+    const topOfTree = 8 + Y_OFF + 1.2, bottomOfTree = Y_OFF - 1.6;
+    [...FOUR_WORLDS].reverse().forEach((w, i) => makeTree(w.key, w.color, w.tone, w.name, w.meaning.split(" · ")[1] || w.meaning, topOfTree + LADDER_STEP * (i + 0.5), false, i));
+    FOUR_SHELLS.forEach((s, i) => makeTree(s.key, s.color, s.tone, s.name, s.meaning.split(" · ")[0], bottomOfTree - LADDER_STEP * (i + 0.5), true, i));
+    this.ladderFocus = null;
+    this.scene.add(this.ladderGroup);
+  }
+  showLadder(v) {
+    this.options.ladder = v;
+    this.ladderGroup.visible = v;
+    if (!this.orbit.userZoomed) this.orbit.flyTo({ theta: this.orbit.theta, phi: this.orbit.phi, radius: TreeScene.fitRadius(this.fit, v), target: new THREE.Vector3(0, 0.35, 0) });
+  }
+  focusWorld(key) {
+    this.ladderFocus = key;
+    if (!key) return;
+    const it = this.ladderItems.find(i => i.key === key);
+    if (!it) return;
+    this.orbit.flyTo({ theta: this.orbit.theta, phi: this.orbit.phi, radius: Math.max(12, TreeScene.fitRadius(this.fit) * 0.9), target: new THREE.Vector3(0, it.y, 0) });
+  }
+
   /* ---- Shem HaMephorash ring ---- */
   setShem(names) {
     if (this.ring) this.scene.remove(this.ring);
@@ -571,6 +636,7 @@ export class TreeScene {
     d.mesh.visible = this.options.daath;
     if (this.ring) this.ring.visible = this.options.ring;
     if (o.ringPlace) this.placeRing(o.ringPlace);
+    if ("ladder" in o) this.showLadder(!!o.ladder);
     this.orbit.autoRotate = !!this.options.autoRotate && !REDUCED;
   }
 
@@ -579,7 +645,7 @@ export class TreeScene {
     if (!m) return;
     this.orbit.flyTo({ theta: this.orbit.theta, phi: this.orbit.phi, radius: Math.min(this.orbit.radius, Math.max(10, TreeScene.fitRadius(this.fit) * 0.8)), target: new THREE.Vector3(0, 0.35 + m.pos.y * 0.5, 0) });
   }
-  resetView() { this.orbit.reset(this.fit); }
+  resetView() { this.ladderFocus = null; this.orbit.userZoomed = false; this.orbit.flyTo({ theta: 0, phi: 1.42, radius: TreeScene.fitRadius(this.fit, this.options.ladder), target: new THREE.Vector3(0, 0.35, 0) }); }
 
   /* the part of the canvas not covered by UI; the camera centres the Tree inside it */
   setVisibleRect(rect) {
@@ -587,7 +653,7 @@ export class TreeScene {
     this.resize();
     if (!this.orbit.userZoomed) {
       const g = this.orbit.goal;
-      this.orbit.flyTo({ theta: g ? g.theta : this.orbit.theta, phi: g ? g.phi : this.orbit.phi, radius: TreeScene.fitRadius(this.fit), target: g ? g.target : this.orbit.target.clone() });
+      this.orbit.flyTo({ theta: g ? g.theta : this.orbit.theta, phi: g ? g.phi : this.orbit.phi, radius: TreeScene.fitRadius(this.fit, this.options.ladder), target: g ? g.target : this.orbit.target.clone() });
     }
   }
 
@@ -598,10 +664,12 @@ export class TreeScene {
     rc.setFromCamera(ndc, this.camera);
     const targets = [...this.sephGroup.children.filter(c => c.isMesh && c.visible), ...this.pathsGroup.children];
     if (this.ring && this.ring.visible) targets.push(...this.ring.children.filter(c => c.isSprite));
+    if (this.ladderGroup.visible) for (const it of this.ladderItems) { targets.push(it.sprite, ...it.group.children.filter(c => c.isMesh && c.userData.world)); }
     const hits = rc.intersectObjects(targets, false);
     if (!hits.length || !this.onSelect) return;
     const u = hits[0].object.userData;
-    if (u.seph) this.onSelect({ type: "sephirah", key: u.seph });
+    if (u.world) this.onSelect({ type: "world", key: u.world });
+    else if (u.seph) this.onSelect({ type: "sephirah", key: u.seph });
     else if (u.path) this.onSelect({ type: "path", n: u.path });
     else if (u.shem) this.onSelect({ type: "shem", n: u.shem });
   }
@@ -669,6 +737,14 @@ export class TreeScene {
         it.sp.scale.set(sc, sc, 1);
         it.sp.material.opacity = lerp(it.sp.material.opacity, on ? 1 : (this.ringFocus == null ? 0.85 : 0.35), 0.15);
         it.sp.position.y = lerp(it.sp.position.y, on ? it.baseY + 0.9 : it.baseY, 0.15);
+      }
+    }
+    if (this.ladderGroup.visible) {
+      for (const it of this.ladderItems) {
+        const on = it.key === this.ladderFocus, any = this.ladderFocus != null;
+        const f = on ? 1.8 + pulse * 0.4 : any ? 0.45 : 1;
+        it.mats.forEach((m, i) => { m.opacity = lerp(m.opacity, Math.min(1, it.base[i] * f), 0.12); });
+        it.sprite.material.opacity = lerp(it.sprite.material.opacity, on ? 1 : any ? 0.4 : 0.85, 0.12);
       }
     }
     this.stars.rotation.y += dt * 0.004;
