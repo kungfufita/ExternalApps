@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pathworking — Tree of Life</title>
-<meta name="description" content="A 3D Tree of Life for Kabbalistic pathworking: the Lightning Flash descent that opens the channels, the Serpent of Wisdom ascending the 22 paths, and the 72 Names of the Shem HaMephorash.">
+<meta name="description" content="A 3D Tree of Life for Kabbalistic pathworking: the Lightning Flash descent that opens the channels, the Serpent of Wisdom ascending the 22 paths, the 72 Names of the Shem HaMephorash, a guided pathworking with protection and preparation, and a private journal.">
 <meta name="theme-color" content="#070912">
 <meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -56,7 +56,11 @@
       <button class="tab" role="tab" data-tab="descent" aria-selected="false">Descent</button>
       <button class="tab" role="tab" data-tab="ascent" aria-selected="false">Ascent</button>
       <button class="tab" role="tab" data-tab="names" aria-selected="false">72 Names</button>
+      <button class="tab" role="tab" data-tab="worlds" aria-selected="false">Worlds</button>
+      <button class="tab" role="tab" data-tab="tarot" aria-selected="false">Tarot</button>
       <button class="tab" role="tab" data-tab="guide" aria-selected="false">Guide</button>
+      <button class="tab" role="tab" data-tab="journal" aria-selected="false">Journal</button>
+      <button class="tab" role="tab" data-tab="history" aria-selected="false">History</button>
     </nav>
 
     <div class="panel-body">
@@ -71,6 +75,7 @@
           <label class="toggle"><input type="checkbox" data-opt="pillars" checked> Three Pillars</label>
           <label class="toggle"><input type="checkbox" data-opt="ring" checked> Shem HaMephorash ring</label>
           <label class="toggle"><input type="checkbox" data-opt="autoRotate"> Slow rotation</label>
+          <label class="toggle"><input type="checkbox" data-opt="ladder"> Worlds above &amp; below</label>
         </div>
         <label class="field">Ring placement
           <select id="ring-place">
@@ -145,12 +150,92 @@
         <div id="shem-grid" class="shem-grid"></div>
       </section>
 
+      <!-- WORLDS -->
+      <section class="tabpanel" data-tab="worlds" role="tabpanel" hidden>
+        <p class="lead">The Tree you see is the Tree of one World. Four Worlds rise above it in ever subtler substance, and four Shells hang inverted below it. Tap a World on the model or in the list for its attributes.</p>
+        <label class="toggle"><input type="checkbox" id="ladder-toggle"> Show the Worlds above and the Shells below on the model (Jacob's Ladder)</label>
+        <h2 class="h">The Four Worlds above</h2>
+        <div id="worlds-list" class="world-list"></div>
+        <h2 class="h">The Four Shells below</h2>
+        <div id="shells-list" class="world-list"></div>
+        <div id="world-detail" class="card" hidden></div>
+        <details class="prep-sec" data-sec="ladder">
+          <summary><span class="prep-num">§</span> Jacob's Ladder <span class="prep-sub">how the Worlds join</span></summary>
+          <div class="prep-body" id="ladder-note"></div>
+        </details>
+        <details class="prep-sec prep-danger" data-sec="qliphoth">
+          <summary><span class="prep-num">!</span> The ten Qliphoth <span class="prep-sub">the shadow of each Sephirah</span></summary>
+          <div class="prep-body" id="qliphoth-note"></div>
+        </details>
+      </section>
+
+      <!-- TAROT -->
+      <section class="tabpanel" data-tab="tarot" role="tabpanel" hidden>
+        <p class="lead">The seventy-eight cards laid on the Tree: the twenty-two trumps on the paths, the forty pips on the Sephiroth in the four Worlds, the sixteen court cards on the letters of the Name. Tap a card; the model lights where it lives.</p>
+        <div class="row2">
+          <label class="field">Show
+            <select id="tarot-filter">
+              <option value="major">Major Arcana · the 22 trumps</option>
+              <option value="wands">Wands · Fire · Atziluth</option>
+              <option value="cups">Cups · Water · Briah</option>
+              <option value="swords">Swords · Air · Yetzirah</option>
+              <option value="pentacles">Pentacles · Earth · Assiah</option>
+            </select>
+          </label>
+          <label class="field">Find a card<input id="tarot-search" type="search" placeholder="name, path, title"></label>
+        </div>
+        <div id="tarot-detail" class="card" hidden></div>
+        <div id="tarot-grid" class="tarot-grid"></div>
+        <details class="prep-sec" data-sec="tarot-uses">
+          <summary><span class="prep-num">1</span> How the Tarot is used <span class="prep-sub">pathworking, meditation, divination</span></summary>
+          <div class="prep-body" id="tarot-uses"></div>
+        </details>
+        <details class="prep-sec" data-sec="tarot-secret">
+          <summary><span class="prep-num">2</span> The hidden teaching <span class="prep-sub">what the cards keep, and who kept them</span></summary>
+          <div class="prep-body" id="tarot-secret"></div>
+        </details>
+        <details class="prep-sec" data-sec="tarot-sources">
+          <summary><span class="prep-num">§</span> Sources</summary>
+          <div class="prep-body" id="tarot-sources"></div>
+        </details>
+      </section>
+
       <!-- GUIDE -->
       <section class="tabpanel" data-tab="guide" role="tabpanel" hidden>
-        <p class="lead">A step-by-step pathworking for any of the twenty-two paths, with the model lighting the way. Suggested timings are only a rhythm; linger where you need to.</p>
+        <p class="lead">A step-by-step pathworking for any of the twenty-two paths, with the model lighting the way. Suggested timings are only a rhythm; linger where you need to. <strong>Read the preparation sections below before your first journey.</strong></p>
+
+        <div id="prep" class="prep">
+          <details class="prep-sec" data-sec="order">
+            <summary><span class="prep-num">1</span> Order of operations <span class="prep-sub">how to approach the Tree</span></summary>
+            <div class="prep-body" id="prep-order"></div>
+          </details>
+          <details class="prep-sec prep-danger" data-sec="dangers">
+            <summary><span class="prep-num">2</span> Dangers <span class="prep-sub">read before proceeding</span></summary>
+            <div class="prep-body" id="prep-dangers"></div>
+          </details>
+          <details class="prep-sec" data-sec="entering">
+            <summary><span class="prep-num">3</span> Entering the Tree <span class="prep-sub">three visualizations</span></summary>
+            <div class="prep-body" id="prep-entering"></div>
+          </details>
+          <details class="prep-sec" data-sec="protection">
+            <summary><span class="prep-num">4</span> Protection <span class="prep-sub">the symbols between Sephiroth</span></summary>
+            <div class="prep-body" id="prep-protection"></div>
+          </details>
+          <details class="prep-sec" data-sec="integration">
+            <summary><span class="prep-num">5</span> Integration <span class="prep-sub">before the next path</span></summary>
+            <div class="prep-body" id="prep-integration"></div>
+          </details>
+          <details class="prep-sec" data-sec="sources">
+            <summary><span class="prep-num">§</span> Sources <span class="prep-sub">where this comes from</span></summary>
+            <div class="prep-body" id="prep-sources"></div>
+          </details>
+        </div>
+
+        <h2 class="h">Guided pathworking</h2>
         <label class="field">Path
           <select id="guide-path"></select>
         </label>
+        <div id="guide-readiness" class="readiness"></div>
         <div class="row2">
           <label class="toggle toggle-inline"><input id="guide-auto" type="checkbox"> Auto-advance</label>
           <label class="toggle toggle-inline"><input id="guide-breath" type="checkbox"> Breath pacer</label>
@@ -167,14 +252,55 @@
         <div class="progress"><div id="g-bar" class="bar bar-violet"></div></div>
         <div id="g-step" class="card guide-step"></div>
         <ol id="g-steps" class="steps steps-compact"></ol>
-        <label class="field">Journal (kept on this device only)
-          <textarea id="g-notes" rows="4" placeholder="What did you see, meet, hear? Write it down before it fades."></textarea>
+        <label class="field">Quick notes for this path (kept on this device only)
+          <textarea id="g-notes" rows="3" placeholder="What did you see, meet, hear? Write it down before it fades."></textarea>
         </label>
+        <button class="btn btn-wide" id="g-log" type="button">✎ Log this session in the Journal</button>
+      </section>
+
+      <!-- JOURNAL -->
+      <section class="tabpanel" data-tab="journal" role="tabpanel" hidden>
+        <p class="lead">A record of every working and of what followed it in ordinary life. Everything stays on this device. Export regularly.</p>
+        <div id="j-summary" class="j-summary"></div>
+        <div class="transport">
+          <button class="btn btn-gold btn-wide" id="j-new" type="button">+ New entry</button>
+          <button class="btn" id="j-export" type="button" title="Export journal as JSON">⇩ JSON</button>
+          <button class="btn" id="j-export-md" type="button" title="Export journal as Markdown">⇩ MD</button>
+          <label class="btn" title="Import a JSON export">⇧<input id="j-import" type="file" accept="application/json" class="sr-only"></label>
+        </div>
+        <div class="row2">
+          <label class="field">Filter by path
+            <select id="j-filter"><option value="">All paths</option></select>
+          </label>
+          <label class="field">Sort
+            <select id="j-sort"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="path">By path</option></select>
+          </label>
+        </div>
+        <div id="j-editor" class="card j-editor" hidden></div>
+        <div id="j-list" class="j-list"></div>
+      </section>
+
+      <!-- HISTORY -->
+      <section class="tabpanel" data-tab="history" role="tabpanel" hidden>
+        <p class="lead">What changed in each release of this app: features added, things adjusted, and what was fixed. Newest first.</p>
+        <div class="row2">
+          <label class="field">Show
+            <select id="hist-filter">
+              <option value="">Everything</option>
+              <option value="feature">Features</option>
+              <option value="adjusted">Adjusted</option>
+              <option value="fixed">Fixed</option>
+              <option value="content">Content</option>
+            </select>
+          </label>
+          <div class="field">Current version<div id="hist-version" class="hist-version"></div></div>
+        </div>
+        <div id="hist-list" class="hist-list"></div>
       </section>
     </div>
 
     <footer class="panel-foot">
-      <p>Correspondences follow the Hermetic (Golden Dawn) Tree. A visual aid for practice, not a teacher. Works offline once loaded.</p>
+      <p>Correspondences follow the Hermetic (Golden Dawn) Tree. A visual aid for practice, not a teacher. Works offline once loaded. <span id="app-version" class="ver"></span></p>
     </footer>
   </aside>
 </main>
