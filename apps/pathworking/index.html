@@ -60,6 +60,7 @@
       <button class="tab" role="tab" data-tab="tarot" aria-selected="false">Tarot</button>
       <button class="tab" role="tab" data-tab="guide" aria-selected="false">Guide</button>
       <button class="tab" role="tab" data-tab="journal" aria-selected="false">Journal</button>
+      <button class="tab" role="tab" data-tab="history" aria-selected="false">History</button>
     </nav>
 
     <div class="panel-body">
@@ -278,10 +279,28 @@
         <div id="j-editor" class="card j-editor" hidden></div>
         <div id="j-list" class="j-list"></div>
       </section>
+
+      <!-- HISTORY -->
+      <section class="tabpanel" data-tab="history" role="tabpanel" hidden>
+        <p class="lead">What changed in each release of this app: features added, things adjusted, and what was fixed. Newest first.</p>
+        <div class="row2">
+          <label class="field">Show
+            <select id="hist-filter">
+              <option value="">Everything</option>
+              <option value="feature">Features</option>
+              <option value="adjusted">Adjusted</option>
+              <option value="fixed">Fixed</option>
+              <option value="content">Content</option>
+            </select>
+          </label>
+          <div class="field">Current version<div id="hist-version" class="hist-version"></div></div>
+        </div>
+        <div id="hist-list" class="hist-list"></div>
+      </section>
     </div>
 
     <footer class="panel-foot">
-      <p>Correspondences follow the Hermetic (Golden Dawn) Tree. A visual aid for practice, not a teacher. Works offline once loaded.</p>
+      <p>Correspondences follow the Hermetic (Golden Dawn) Tree. A visual aid for practice, not a teacher. Works offline once loaded. <span id="app-version" class="ver"></span></p>
     </footer>
   </aside>
 </main>

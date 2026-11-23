@@ -9,6 +9,7 @@ import {
 } from "./guide.js";
 import { FOUR_WORLDS, WORLD_BY_KEY, FOUR_SHELLS, QLIPHOTH, LADDER_NOTE, QLIPHOTH_NOTE } from "./worlds.js";
 import { MAJORS, MAJOR_BY_PATH, SUITS, buildMinors, TAROT_USES, TAROT_SECRET, TAROT_SOURCES } from "./tarot.js";
+import { APP_VERSION, CHANGELOG, TYPE_LABELS } from "./changelog.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -81,6 +82,7 @@ function setMode(m) {
   if (m === "tarot") { scene.clearLit(); setHud("Tarot", "The 78 cards on the Tree · tap a card"); if (tarotSelected) selectTarot(tarotSelected); }
   if (m === "guide") { guideRender(); renderReadiness(); }
   if (m === "journal") { scene.clearLit(); setHud("Journal", "Your record of each working and what followed it · kept on this device"); journalRender(); }
+  if (m === "history") { scene.clearLit(); setHud("Revision history", `Pathworking ${APP_VERSION} · what was added, adjusted and fixed`); }
   store.set("mode", m);
 }
 
@@ -994,6 +996,28 @@ $("#j-import").addEventListener("change", async ev => {
 
 guideLoad(+guideSel.value);
 journalRender();
+
+/* ───────────── HISTORY tab ───────────── */
+{
+  $("#app-version").textContent = `v${APP_VERSION}`;
+  $("#hist-version").textContent = `v${APP_VERSION} · ${CHANGELOG[0].date}`;
+  const hf = $("#hist-filter");
+  const render = () => {
+    const f = hf.value;
+    $("#hist-list").innerHTML = CHANGELOG.map(r => {
+      const items = r.items.filter(i => !f || i.type === f);
+      if (!items.length) return "";
+      const counts = Object.keys(TYPE_LABELS).map(t => [t, r.items.filter(i => i.type === t).length]).filter(([, n]) => n);
+      return `<article class="hist-rel${r.version === APP_VERSION ? " current" : ""}">
+        <div class="hist-head"><span class="hist-ver">v${esc(r.version)}</span><strong>${esc(r.title)}</strong><span class="hist-date">${esc(r.date)}</span></div>
+        <div class="hist-counts">${counts.map(([t, n]) => `<span class="tag tag-${t}">${n} ${esc(TYPE_LABELS[t].toLowerCase())}</span>`).join("")}</div>
+        <ul class="hist-items">${items.map(i => `<li><span class="tag tag-${i.type}">${esc(TYPE_LABELS[i.type])}</span><span>${esc(i.text)}</span></li>`).join("")}</ul>
+      </article>`;
+    }).join("") || `<p class="note center">Nothing of that kind yet.</p>`;
+  };
+  hf.addEventListener("change", render);
+  render();
+}
 
 /* ───────────── share / install / offline ───────────── */
 $("#share-btn").addEventListener("click", async () => {
