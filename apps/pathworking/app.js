@@ -40,8 +40,25 @@ const panel = $("#panel");
 const stage = $(".stage");
 let mode = "tree";
 const PANEL_W = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--panel-w")) || 450;
+
+/* Layout: auto (by screen width), or forced phone / desktop. Sets body.wide / body.narrow, which the stylesheet keys on. */
+const layoutPick = $("#layout-pick");
+const wideQuery = matchMedia("(min-width: 900px)");
+let layout = store.get("layout", "auto");
+layoutPick.value = layout;
+const isWide = () => layout === "desktop" || (layout === "auto" && wideQuery.matches);
+function applyLayout() {
+  const wide = isWide();
+  document.body.classList.toggle("wide", wide);
+  document.body.classList.toggle("narrow", !wide);
+  if (wide) panel.classList.remove("tall");
+  updateViewport();
+}
+layoutPick.addEventListener("change", () => { layout = layoutPick.value; store.set("layout", layout); applyLayout(); toast(layout === "auto" ? "Layout follows the screen size" : `${layout === "phone" ? "Phone" : "Desktop"} layout`); });
+wideQuery.addEventListener("change", applyLayout);
+
 function updateViewport() {
-  const W = innerWidth, H = innerHeight, wide = matchMedia("(min-width: 900px)").matches;
+  const W = innerWidth, H = innerHeight, wide = isWide();
   const collapsed = panel.classList.contains("collapsed");
   stage.classList.toggle("panel-hidden", collapsed);
   const top = wide ? 70 : 118;
@@ -52,11 +69,24 @@ function updateViewport() {
 }
 function setCollapsed(c) {
   panel.classList.toggle("collapsed", c);
+  if (c) panel.classList.remove("tall");
   $("#toggle-panel").setAttribute("aria-expanded", String(!c));
+  gripHint();
   updateViewport();
 }
+/* phone sheet: tap the grip to cycle half → tall → hidden → half */
+function gripHint() {
+  const h = $("#grip-hint");
+  h.textContent = panel.classList.contains("collapsed") ? "tap to open" : panel.classList.contains("tall") ? "tap to hide" : "tap to expand";
+}
+function cycleSheet() {
+  if (panel.classList.contains("collapsed")) setCollapsed(false);
+  else if (!panel.classList.contains("tall")) { panel.classList.add("tall"); gripHint(); updateViewport(); }
+  else setCollapsed(true);
+}
 $("#toggle-panel").addEventListener("click", () => setCollapsed(!panel.classList.contains("collapsed")));
-$(".panel-grip").addEventListener("click", () => setCollapsed(!panel.classList.contains("collapsed")));
+$(".panel-grip").addEventListener("click", cycleSheet);
+$(".panel-grip").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); cycleSheet(); } });
 addEventListener("resize", updateViewport);
 new ResizeObserver(updateViewport).observe(panel);
 $("#reset-view").addEventListener("click", () => scene.resetView());
@@ -67,6 +97,7 @@ function setMode(m) {
   $$(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.tab === m)));
   $$(".tabpanel").forEach(p => (p.hidden = p.dataset.tab !== m));
   if (panel.classList.contains("collapsed")) setCollapsed(false);
+  if (!isWide()) { $(`.tab[data-tab="${m}"]`)?.scrollIntoView({ inline: "center", block: "nearest" }); $(".panel-body").scrollTop = 0; }
   scene.showFlash(m === "descent");
   scene.showSerpent(m === "ascent");
   scene.focusShem(null);
@@ -1045,10 +1076,12 @@ if ("serviceWorker" in navigator) {
 }
 
 /* ───────────── start ───────────── */
+applyLayout();
 setMode(store.get("mode", "tree"));
-if (matchMedia("(max-width: 899px)").matches && !store.get("seen", false)) {
+if (!isWide() && !store.get("seen", false)) {
   // first visit on a phone: start with the sheet lowered so the Tree is visible
   setCollapsed(true);
   store.set("seen", true);
 }
+gripHint();
 updateViewport();

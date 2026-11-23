@@ -2,9 +2,16 @@
    Newest first. Each entry: version, date, title, and items tagged
    feature | adjusted | fixed | content. Add a new entry at the top for every release. */
 
-export const APP_VERSION = "1.3.0";
+export const APP_VERSION = "1.3.1";
 
 export const CHANGELOG = [
+  { version: "1.3.1", date: "2026-11-23", title: "Phone layout and a layout picker",
+    items: [
+      { type: "feature", text: "Layout picker in the top bar: Auto (follows screen size), Phone or Desktop, remembered on this device." },
+      { type: "feature", text: "Phone sheet has three heights: tap the grip to cycle half, tall (for reading the guide and journal) and hidden." },
+      { type: "adjusted", text: "Phone: the tab strip scrolls with a fade hint and the active tab scrolls into view; cards show one correspondence per line; guide steps list in one column; tables scroll sideways; larger reading text; checklists in one column." },
+      { type: "adjusted", text: "Phone: the Share button shows only its icon to leave room for the layout picker." },
+    ] },
   { version: "1.3.0", date: "2026-11-23", title: "History tab",
     items: [
       { type: "feature", text: "History tab: this revision log, with what was added, adjusted and fixed in each version, and the version shown in the panel footer." },

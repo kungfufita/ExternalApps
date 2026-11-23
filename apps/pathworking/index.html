@@ -27,8 +27,13 @@
     </div>
   </div>
   <div class="topbar-actions">
+    <select id="layout-pick" class="layout-pick" aria-label="Layout" title="Choose the phone or desktop layout">
+      <option value="auto">Auto layout</option>
+      <option value="phone">Phone</option>
+      <option value="desktop">Desktop</option>
+    </select>
     <button id="share-btn" class="btn btn-ghost" type="button" title="Share this app">
-      <span aria-hidden="true">⇪</span> Share
+      <span aria-hidden="true">⇪</span><span class="share-label"> Share</span>
     </button>
     <button id="install-btn" class="btn btn-gold" type="button" hidden>Install</button>
   </div>
@@ -50,7 +55,9 @@
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
   <aside id="panel" class="panel" aria-label="Controls">
-    <div class="panel-grip" aria-hidden="true"></div>
+    <div class="panel-grip" role="button" tabindex="0" aria-label="Resize the panel: tap to cycle half, tall and hidden"></div>
+    <div class="panel-grip-hint" id="grip-hint" aria-hidden="true">tap to expand</div>
+    <div class="tabs-wrap">
     <nav class="tabs" role="tablist" aria-label="Modes">
       <button class="tab" role="tab" data-tab="tree" aria-selected="true">Tree</button>
       <button class="tab" role="tab" data-tab="descent" aria-selected="false">Descent</button>
@@ -62,6 +69,7 @@
       <button class="tab" role="tab" data-tab="journal" aria-selected="false">Journal</button>
       <button class="tab" role="tab" data-tab="history" aria-selected="false">History</button>
     </nav>
+    </div>
 
     <div class="panel-body">
       <!-- TREE -->
