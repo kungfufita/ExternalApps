@@ -15,6 +15,7 @@ export const PRONOUNCE = {
   "Elohim Gibor": "el-oh-HEEM gi-BOR", "YHVH Eloah va-Daath": "yode-HAY-vahv-HAY el-OH-ah veh-DAH-at", "YHVH Tzabaoth": "yode-HAY-vahv-HAY tzah-bah-OTE",
   "Elohim Tzabaoth": "el-oh-HEEM tzah-bah-OTE", "Shaddai El Chai": "shah-DYE el KHYE", "Adonai ha-Aretz": "ah-doh-NYE hah-AH-retz", "Adonai": "ah-doh-NYE",
   "AGLA": "ah-gah-LAH", "Elohim": "el-oh-HEEM", "YHShVH": "yeh-heh-SHOO-ah", "Eloah": "el-OH-ah",
+  "Jehovah": "yeh-hoh-VAH", "Jehovah Elohim": "yeh-hoh-VAH el-oh-HEEM", "Jehovah Aloah va-Daath": "yeh-hoh-VAH ah-LOH-ah vah-DAH-at", "Jehovah Aloah va Daath": "yeh-hoh-VAH ah-LOH-ah vah-DAH-at",
   // Archangels
   "Metatron": "meh-tah-TRON", "Raziel": "rah-zee-EL", "Tzaphkiel": "tzaf-kee-EL", "Tzadkiel": "tzad-kee-EL", "Kamael": "kah-mah-EL", "Raphael": "rah-fah-EL",
   "Haniel": "hah-nee-EL", "Michael": "mee-khah-EL", "Gabriel": "gahv-ree-EL", "Sandalphon": "san-dal-FONE", "Auriel": "oh-ree-EL", "Uriel": "oo-ree-EL",

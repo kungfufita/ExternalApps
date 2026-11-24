@@ -2,9 +2,20 @@
    Newest first. Each entry: version, date, title, and items tagged
    feature | adjusted | fixed | content. Add a new entry at the top for every release. */
 
-export const APP_VERSION = "1.4.0";
+export const APP_VERSION = "1.5.0";
 
 export const CHANGELOG = [
+  { version: "1.5.0", date: "2026-11-24", title: "The Middle Pillar, voice-guided",
+    items: [
+      { type: "feature", text: "Guide: a second practice, the Middle Pillar exercise after Ted Andrews' method in Simplified Magic. Ten steps: settle, charge each of the five centres (crown, throat, heart, sacrum, feet) by toning its Divine Name four times, join the pillar, circulate down the left and up the right, down the front and up the back, the fountain, absorb and ground." },
+      { type: "feature", text: "Timed voice cues: with Voice guidance on, each step is read as it begins, then the voice tones each Name at the right moments (slowly, syllable by syllable) and counts the breaths of the circulations, so the exercise can be done with the eyes closed." },
+      { type: "content", text: "A teaching section on the exercise: the five centres with their place in the body, the chakra each answers to, its colour, the Name with its pronunciation and meaning, what the charge feels like, Andrews' practice notes and cautions, and sources." },
+      { type: "feature", text: "Journal: Middle Pillar sessions can be logged (pre-filled from the guide), listed, filtered and exported alongside pathworkings; the guide shows how many have been done and when." },
+    ] },
+  { version: "1.4.1", date: "2026-11-23", title: "Speak on tap",
+    items: [
+      { type: "feature", text: "Speak on tap: with the 🔊 switch in the top bar on (it is on by default), anything tapped says its name: Sephiroth and paths on the model or in the lists, the 72 Names, tarot cards, Worlds and Shells, steps in the Descent, Ascent and Guide, tabs, section headings, toggles, buttons, journal entries and menu choices. Names are respelled as they are spoken. Turn it off with the same switch or in Guide → Voice." },
+    ] },
   { version: "1.4.0", date: "2026-11-23", title: "Pronunciation and read-aloud",
     items: [
       { type: "feature", text: "Text to speech with the browser's own voices (offline, no account): a speaker button beside every Divine Name, Archangel, choir, Sephirah, letter, World, Shell, angel of the 72 and ritual word, with a phonetic respelling in the tooltip." },
