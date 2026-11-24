@@ -102,7 +102,7 @@
 
       <!-- DESCENT -->
       <section class="tabpanel" data-tab="descent" role="tabpanel" hidden>
-        <p class="lead">The Light descends from the Source and opens each channel in turn. Follow it with your breath, resting at each Sephirah.</p>
+        <p class="lead">The Light descends from the Source and opens each channel in turn. Follow it with your breath, resting at each Sephirah. For the Middle Pillar as a voice-guided exercise with the toned Names, see the Guide tab.</p>
         <label class="field">Sequence
           <select id="descent-preset">
             <option value="flash">Lightning Flash — Kether to Malkuth through all ten</option>
@@ -240,10 +240,20 @@
           </details>
         </div>
 
-        <h2 class="h">Guided pathworking</h2>
-        <label class="field">Path
+        <h2 class="h">Guided practice</h2>
+        <label class="field">Practice
+          <select id="guide-practice">
+            <option value="path">Pathworking: travel a path of the Tree</option>
+            <option value="mp">Middle Pillar: charge the five centres (Ted Andrews' method)</option>
+          </select>
+        </label>
+        <label class="field" id="guide-path-field">Path
           <select id="guide-path"></select>
         </label>
+        <details class="prep-sec" data-sec="mp" id="mp-sec" hidden>
+          <summary><span class="prep-num">⚡</span> The Middle Pillar <span class="prep-sub">Ted Andrews' method, from Simplified Magic</span></summary>
+          <div class="prep-body" id="mp-body"></div>
+        </details>
         <div id="guide-readiness" class="readiness"></div>
         <div class="row2">
           <label class="toggle toggle-inline"><input id="guide-auto" type="checkbox"> Auto-advance</label>
@@ -253,7 +263,7 @@
           <summary><span class="prep-num">🔊</span> Voice <span class="prep-sub">hear the Names; read steps aloud</span></summary>
           <div class="prep-body" id="voice-box">
             <label class="toggle"><input id="voice-tap" type="checkbox"> Speak on tap: anything tapped says its name (also the 🔊 in the top bar)</label>
-            <label class="toggle"><input id="guide-read" type="checkbox"> Read each step aloud as it begins (eyes closed)</label>
+            <label class="toggle"><input id="guide-read" type="checkbox"> Voice guidance: read each step as it begins and give the timed cues (tonings, breaths) while it runs</label>
             <label class="toggle"><input id="voice-vibrate" type="checkbox"> Vibrate slowly: draw out each syllable of a Name</label>
             <label class="field">Voice<select id="voice-sel"></select></label>
             <label class="field">Speed <input id="voice-rate" type="range" min="0.5" max="1.3" step="0.05" value="0.9"></label>

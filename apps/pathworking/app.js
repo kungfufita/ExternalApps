@@ -11,6 +11,10 @@ import { FOUR_WORLDS, WORLD_BY_KEY, FOUR_SHELLS, QLIPHOTH, LADDER_NOTE, QLIPHOTH
 import { MAJORS, MAJOR_BY_PATH, SUITS, buildMinors, TAROT_USES, TAROT_SECRET, TAROT_SOURCES } from "./tarot.js";
 import { APP_VERSION, CHANGELOG, TYPE_LABELS } from "./changelog.js";
 import { speech, phonetic, sayBtn, PRONOUNCE } from "./speech.js";
+import { MP_SOURCES, MP_CENTRES, MP_INTRO, buildMiddlePillar, mpNeeds, MP_PSEUDO_PATH } from "./middlepillar.js";
+/* a journal/guide "path" is a path number, or "mp" for the Middle Pillar exercise */
+const PINFO = n => n === "mp" ? MP_PSEUDO_PATH : PATH_BY_N[n];
+const isMP = n => n === "mp";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -678,15 +682,22 @@ function buildGuide(n) {
   ];
 }
 
-let guide = { n: +guideSel.value, steps: buildGuide(+guideSel.value), i: 0, running: false, elapsed: 0, last: 0, total: 0, started: null };
+const guidePractice = $("#guide-practice");
+guidePractice.value = store.get("guidePractice", "path");
+const currentGuideKey = () => guidePractice.value === "mp" ? "mp" : +guideSel.value;
+const buildSteps = n => isMP(n) ? buildMiddlePillar() : buildGuide(n);
+let guide = { n: currentGuideKey(), steps: buildSteps(currentGuideKey()), i: 0, running: false, elapsed: 0, last: 0, total: 0, started: null, cued: new Set() };
 function guideLoad(n) {
-  guide = { n, steps: buildGuide(n), i: 0, running: false, elapsed: 0, last: 0, total: 0, started: null };
+  speech.stop();
+  guide = { n, steps: buildSteps(n), i: 0, running: false, elapsed: 0, last: 0, total: 0, started: null, cued: new Set() };
+  $("#guide-path-field").hidden = isMP(n);
+  $("#mp-sec").hidden = !isMP(n);
   $("#g-notes").value = store.get("notes." + n, "");
   const ol = $("#g-steps"); ol.innerHTML = "";
   guide.steps.forEach((st, i) => {
     const li = document.createElement("li");
     li.innerHTML = `<span class="num">${i + 1}</span><span class="lbl">${esc(st.title)}${st.protect ? ' <span class="shield" title="protection">⛨</span>' : ""}<div class="sub">${fmt(st.secs)}</div></span>`;
-    li.addEventListener("click", () => { guide.i = i; guide.elapsed = 0; guideRender(); });
+    li.addEventListener("click", () => { guide.i = i; guide.elapsed = 0; guide.cued = new Set(); speech.stop(); guideRender(); });
     ol.appendChild(li);
   });
   guideRender();
@@ -694,17 +705,17 @@ function guideLoad(n) {
 }
 function guideRender() {
   const st = guide.steps[guide.i];
-  const p = PATH_BY_N[guide.n];
+  const p = PINFO(guide.n);
   $$("#g-steps li").forEach((li, i) => { li.classList.toggle("active", i === guide.i); li.classList.toggle("done", i < guide.i); });
   $("#g-step").innerHTML = `<div class="step-title">${guide.i + 1}. ${esc(st.title)} <button type="button" class="say say-step" id="g-read" title="Read this step aloud" aria-label="Read this step aloud">🔊 Read</button></div><div class="step-where">${esc(st.where)}</div>${st.html}<div class="timer"><span>${fmt(guide.elapsed)} / ${fmt(st.secs)}</span><span>${guide.running ? "running" : "paused"} · session ${fmt(guide.total)}</span></div>`;
   $("#g-bar").style.width = `${Math.min(100, (guide.elapsed / st.secs) * 100)}%`;
   $('[data-act="g-play"]').textContent = guide.running ? "❚❚ Pause" : guide.elapsed > 0 || guide.i > 0 ? "▶ Resume" : "▶ Start";
   $("#g-read").addEventListener("click", () => readStep());
-  if (mode === "guide" && $("#guide-read").checked && guide.lastRead !== guide.i && (guide.running || guide.i > 0)) { guide.lastRead = guide.i; readStep(); }
+  if (mode === "guide" && $("#guide-read").checked && guide.lastRead !== guide.i && (guide.running || guide.i > 0)) { guide.lastRead = guide.i; if (!(st.cues && guide.running)) readStep(); }
   if (mode === "guide") {
     scene.setLit(st.lit, st.paths);
     if (st.focus) scene.focusSephirah(st.focus); else scene.resetView();
-    setHud(`Path ${guide.n} · ${esc(p.name)} <span class="heb">${esc(p.letter)}</span>`, `${esc(st.title)} · ${esc(st.where)}`);
+    setHud(isMP(guide.n) ? `The Middle Pillar` : `Path ${guide.n} · ${esc(p.name)} <span class="heb">${esc(p.letter)}</span>`, `${esc(st.title)} · ${esc(st.where)}`);
   }
 }
 function stepText(st) {
@@ -719,7 +730,7 @@ function readStep() {
 }
 function guideStep(d) {
   guide.i = Math.max(0, Math.min(guide.steps.length - 1, guide.i + d));
-  guide.elapsed = 0; guideRender();
+  guide.elapsed = 0; guide.cued = new Set(); speech.stop(); guideRender();
 }
 function guideToggle() {
   guide.running = !guide.running;
@@ -732,8 +743,14 @@ function guideTick() {
   const now = performance.now(); const dt = (now - guide.last) / 1000; guide.elapsed += dt; guide.total += dt; guide.last = now;
   const st = guide.steps[guide.i];
   if (guide.elapsed >= st.secs && $("#guide-auto").checked) {
-    if (guide.i < guide.steps.length - 1) { guide.i++; guide.elapsed = 0; }
+    if (guide.i < guide.steps.length - 1) { guide.i++; guide.elapsed = 0; guide.cued = new Set(); }
     else { guide.running = false; }
+  }
+  // voice cues: tonings and breath prompts at their moment in the step
+  const cur = guide.steps[guide.i];
+  if (cur.cues && $("#guide-read").checked) {
+    const due = cur.cues.find((c, k) => c.at <= guide.elapsed && !guide.cued.has(k));
+    if (due) { guide.cued.add(cur.cues.indexOf(due)); if (due.name) speech.sayName(due.name, { vibrate: true }); else speech.read(due.text); }
   }
   // cheap re-render of the timer only
   const t = $$("#g-step .timer span"); if (t[0]) { t[0].textContent = `${fmt(guide.elapsed)} / ${fmt(st.secs)}`; t[1].textContent = `running · session ${fmt(guide.total)}`; }
@@ -742,6 +759,16 @@ function guideTick() {
   if (guide.running) setTimeout(guideTick, 250);
 }
 guideSel.addEventListener("change", () => { store.set("guidePath", +guideSel.value); guideLoad(+guideSel.value); });
+guidePractice.addEventListener("change", () => { store.set("guidePractice", guidePractice.value); guideLoad(currentGuideKey()); });
+/* the Middle Pillar teaching section */
+$("#mp-body").innerHTML = `<p class="prep-intro">${esc(MP_INTRO.what)}</p><p>${esc(MP_INTRO.how)}</p>
+  <table class="vtable"><thead><tr><th>Centre</th><th>In the body</th><th>Chakra</th><th>Colour</th><th>Name toned</th></tr></thead><tbody>
+  ${MP_CENTRES.map(c => `<tr><td><span class="dot" style="background:${c.color}"></span>${esc(c.name)}</td><td>${esc(c.body)}</td><td>${esc(c.chakra)}</td><td>${esc(c.colorName)}</td><td>${esc(c.godName)} ${sayBtn(c.godName)}<div class="sub">${esc(c.said)} · “${esc(c.meaning)}”</div></td></tr>`).join("")}
+  </tbody></table>
+  <strong>Practice notes</strong><ul class="rules">${MP_INTRO.tips.map(t => `<li>${esc(t)}</li>`).join("")}</ul>
+  <p><strong>What it gives.</strong> ${esc(MP_INTRO.benefits)}</p>
+  <p class="note">Turn on <em>Voice guidance</em> under Voice and press Start: each step is read, then the voice tones each Name four times at the right moments and counts the breaths of the circulations, so the exercise can be done with the eyes closed.</p>
+  <ul class="sources">${MP_SOURCES.map(x => `<li><strong>${esc(x.cite)}</strong><div class="sub">${esc(x.why)}</div></li>`).join("")}</ul>`;
 /* voice settings */
 {
   Object.assign(speech.settings, store.get("speech", {}));
@@ -810,9 +837,15 @@ setInterval(() => {
 
 /* Readiness: what the journal says about this path and the one below it. */
 function renderReadiness() {
-  const n = guide.n, p = PATH_BY_N[n];
+  const n = guide.n, p = PINFO(n);
   const box = $("#guide-readiness");
   const entries = journalAll();
+  if (isMP(n)) {
+    const mine = entries.filter(e => e.path === "mp"), last = mine.map(e => e.date).sort().pop();
+    const days = last ? Math.floor((Date.now() - new Date(last).getTime()) / 864e5) : null;
+    box.innerHTML = `<div>${mine.length ? `<span class="ok">✓</span> Done ${mine.length}× · last ${days === 0 ? "today" : days + " days ago"}` : `<span class="dim">○</span> Not yet logged. Andrews asks for it daily, before any pathworking.`}</div>`;
+    return;
+  }
   const mine = entries.filter(e => +e.path === n);
   const lower = SEPH_BY_KEY[p.to];
   const feeding = PATHS.filter(q => q.from === lower.key).map(q => q.n); // paths that arrive in the lower Sephirah
@@ -840,7 +873,16 @@ const fmtDate = iso => { try { return new Date(iso).toLocaleString(undefined, { 
 const fmtDay = iso => { try { return new Date(iso).toLocaleDateString(undefined, { dateStyle: "medium" }); } catch { return iso; } };
 
 function blankEntry(n = guide.n) {
-  const p = PATH_BY_N[n], lower = SEPH_BY_KEY[p.to], upper = SEPH_BY_KEY[p.from];
+  const p = PINFO(n), lower = SEPH_BY_KEY[p.to], upper = SEPH_BY_KEY[p.from];
+  if (isMP(n)) return {
+    id: uid(), date: nowLocal(), path: "mp", duration: 0,
+    location: "", materials: [], materialsOther: "", tools: "", state: "", conditions: "",
+    protection: [], words: MP_CENTRES.map(c => `${c.godName} ×4`).join(" · "),
+    intention: "I build the Middle Pillar in my body, charge its five centres, and circulate the light.",
+    visual: "Five spheres: white at the crown, lavender at the throat, gold at the heart, violet at the sacrum, earth colours at the feet; the shaft; the three circulations; the fountain.",
+    met: "", experience: "", gift: "", moodBefore: 3, moodAfter: 3, body: "", grounded: false, difficulty: 3,
+    effects: [], results: {}, ready: false, vice: "", virtue: "",
+  };
   return {
     id: uid(), date: nowLocal(), path: n, duration: 0,
     location: "", materials: [], materialsOther: "", tools: "", state: "", conditions: "",
@@ -860,6 +902,7 @@ function entryFromGuide() {
   e.protection = [...new Set(e.protection)];
   e.experience = store.get("notes." + guide.n, "");
   // the guide itself spoke the Names and used the sign: tick those as used
+  if (isMP(guide.n)) { e.materials = mpNeeds().filter(n => n.group === "Words").map(n => n.text); return e; }
   const p = PATH_BY_N[guide.n];
   e.materials = sessionNeeds(p, SEPH_BY_KEY[p.to], SEPH_BY_KEY[p.from], MAJOR_BY_PATH[p.n]).filter(n => n.group === "Words").map(n => n.text);
   return e;
@@ -877,11 +920,11 @@ const STATES = [["better", "better"], ["same", "same"], ["worse", "worse"]];
 
 /* What this session should have had ready, grouped, as a checklist. Checked items are stored by text in e.materials. */
 function needsHTML(e) {
-  const p = PATH_BY_N[e.path], lower = SEPH_BY_KEY[p.to], upper = SEPH_BY_KEY[p.from];
-  const needs = sessionNeeds(p, lower, upper, MAJOR_BY_PATH[p.n]);
+  const p = PINFO(e.path), lower = SEPH_BY_KEY[p.to], upper = SEPH_BY_KEY[p.from];
+  const needs = isMP(e.path) ? mpNeeds() : sessionNeeds(p, lower, upper, MAJOR_BY_PATH[p.n]);
   const groups = [...new Set(needs.map(n => n.group))];
   const done = needs.filter(n => e.materials.includes(n.text)).length;
-  return `<div class="needs-head"><span>For the ${ord(p.n)} path, ${esc(p.name)} (${esc(lower.name)} → ${esc(upper.name)})</span><span class="needs-count">${done}/${needs.length} used</span><button class="btn btn-sm" type="button" id="needs-all">Mark all used</button></div>
+  return `<div class="needs-head"><span>${isMP(e.path) ? "For the Middle Pillar exercise" : `For the ${ord(p.n)} path, ${esc(p.name)} (${esc(lower.name)} → ${esc(upper.name)})`}</span><span class="needs-count">${done}/${needs.length} used</span><button class="btn btn-sm" type="button" id="needs-all">Mark all used</button></div>
     ${groups.map(g => `<div class="needs-group"><div class="needs-g">${esc(g)}</div>${needs.filter(n => n.group === g).map(n => `<label class="toggle"><input type="checkbox" name="materials" value="${esc(n.text)}" ${e.materials.includes(n.text) ? "checked" : ""}> ${esc(n.text)}</label>`).join("")}</div>`).join("")}
     <div class="needs-group"><div class="needs-g">General</div>${JOURNAL_MATERIALS.map(m => `<label class="toggle"><input type="checkbox" name="materials" value="${esc(m)}" ${e.materials.includes(m) ? "checked" : ""}> ${esc(m)}</label>`).join("")}</div>`;
 }
@@ -895,6 +938,7 @@ function resultsHTML(e) {
 
 let jEditing = null;
 const jFilter = $("#j-filter"), jSort = $("#j-sort");
+{ const o = document.createElement("option"); o.value = "mp"; o.textContent = "Middle Pillar"; jFilter.appendChild(o); }
 for (const n of SERPENT_ORDER) { const o = document.createElement("option"); o.value = n; o.textContent = `${n} · ${PATH_BY_N[n].name}`; jFilter.appendChild(o); }
 jFilter.value = store.get("jFilter", ""); jSort.value = store.get("jSort", "newest");
 jFilter.addEventListener("change", () => { store.set("jFilter", jFilter.value); journalRender(); });
@@ -905,12 +949,12 @@ const scale = (name, val, lo, hi) => `<div class="scale" data-name="${name}">${[
 function journalEdit(e) {
   jEditing = e;
   const ed = $("#j-editor"); ed.hidden = false;
-  const p = PATH_BY_N[e.path];
+  const p = PINFO(e.path);
   ed.innerHTML = `
     <div class="j-head"><strong>${e.saved ? "Edit entry" : "New entry"}</strong><button class="close" type="button" aria-label="Close">×</button></div>
     <div class="row2">
       <label class="field">Date &amp; time<input name="date" type="datetime-local" value="${esc(e.date)}"></label>
-      <label class="field">Path<select name="path">${SERPENT_ORDER.map(n => `<option value="${n}" ${+e.path === n ? "selected" : ""}>${n} · ${PATH_BY_N[n].letter} ${PATH_BY_N[n].name}</option>`).join("")}</select></label>
+      <label class="field">Path<select name="path"><option value="mp" ${isMP(e.path) ? "selected" : ""}>Middle Pillar</option>${SERPENT_ORDER.map(n => `<option value="${n}" ${+e.path === n ? "selected" : ""}>${n} · ${PATH_BY_N[n].letter} ${PATH_BY_N[n].name}</option>`).join("")}</select></label>
     </div>
     <div class="row2">
       <label class="field">Duration (minutes)<input name="duration" type="number" min="0" step="1" value="${+e.duration || 0}"></label>
@@ -972,7 +1016,7 @@ function journalEdit(e) {
     </div>`;
   $(".close", ed).addEventListener("click", () => { jEditing = null; ed.hidden = true; });
   $$(".scale button", ed).forEach(b => b.addEventListener("click", () => { const sc = b.closest(".scale"); $$("button", sc).forEach(x => x.classList.toggle("on", x === b)); }));
-  $("select[name=path]", ed).addEventListener("change", ev => { const n = +ev.target.value; scene.setLit([PATH_BY_N[n].from, PATH_BY_N[n].to], [n]); journalCollect(e); $("#j-needs", ed).innerHTML = needsHTML(e); bindNeeds(); });
+  $("select[name=path]", ed).addEventListener("change", ev => { const n = ev.target.value === "mp" ? "mp" : +ev.target.value; const pi = PINFO(n); scene.setLit(isMP(n) ? MP_CENTRES.map(c => c.key) : [pi.from, pi.to], isMP(n) ? [] : [n]); journalCollect(e); $("#j-needs", ed).innerHTML = needsHTML(e); bindNeeds(); });
   const needsCount = () => { const all = $$("#j-needs .needs-group:not(:last-child) [name=materials]", ed); $(".needs-count", ed).textContent = `${all.filter(c => c.checked).length}/${all.length} used`; };
   const bindNeeds = () => {
     $("#needs-all", ed)?.addEventListener("click", () => { $$("#j-needs [name=materials]", ed).forEach(c => (c.checked = true)); needsCount(); });
@@ -1008,13 +1052,13 @@ function journalEdit(e) {
     if (!confirm("Delete this journal entry? This cannot be undone.")) return;
     journalSave(journalAll().filter(x => x.id !== e.id)); jEditing = null; ed.hidden = true; journalRender(); renderReadiness();
   });
-  scene.setLit([p.from, p.to], [+e.path]);
+  scene.setLit(isMP(e.path) ? MP_CENTRES.map(c => c.key) : [p.from, p.to], isMP(e.path) ? [] : [+e.path]);
   ed.scrollIntoView({ block: "start", behavior: "smooth" });
 }
 function journalCollect(e) {
   const ed = $("#j-editor");
   for (const k of ["date", "location", "materialsOther", "tools", "state", "conditions", "intention", "words", "visual", "met", "experience", "gift", "body", "virtue", "vice"]) { const el = $(`[name=${k}]`, ed); if (el) e[k] = el.value; }
-  e.path = +$("[name=path]", ed).value; e.duration = +$("[name=duration]", ed).value || 0;
+  { const v = $("[name=path]", ed).value; e.path = v === "mp" ? "mp" : +v; } e.duration = +$("[name=duration]", ed).value || 0;
   e.materials = $$("[name=materials]:checked", ed).map(x => x.value);
   e.results = {};
   $$(".result-row", ed).forEach(row => { const on = $(".r-state.on", row); const note = $(".r-note", row).value.trim(); if (on || note) e.results[row.dataset.kind] = { state: on ? on.dataset.s : "", note }; });
@@ -1024,7 +1068,7 @@ function journalCollect(e) {
 }
 function journalRender() {
   let list = journalAll().slice();
-  const f = jFilter.value; if (f) list = list.filter(e => +e.path === +f);
+  const f = jFilter.value; if (f) list = list.filter(e => String(e.path) === f);
   const s = jSort.value;
   list.sort((a, b) => s === "oldest" ? (a.date < b.date ? -1 : 1) : s === "path" ? (b.path - a.path || (a.date < b.date ? 1 : -1)) : (a.date < b.date ? 1 : -1));
   const all = journalAll();
@@ -1038,10 +1082,10 @@ function journalRender() {
   const box = $("#j-list");
   if (!list.length) { box.innerHTML = `<p class="note center">No entries${f ? " for this path" : ""} yet. Finish a guided pathworking and press “Log this session”, or add one by hand.</p>`; return; }
   box.innerHTML = list.map(e => {
-    const p = PATH_BY_N[e.path];
+    const p = PINFO(e.path);
     const prot = PROTECTION_STEPS.filter(s => e.protection?.includes(s.key)).length;
     return `<article class="j-entry" data-id="${e.id}">
-      <div class="j-row"><span class="dot" style="background:${p.color}"></span><strong>Path ${e.path} · ${esc(p.name)} <span class="heb">${esc(p.letter)}</span></strong><span class="j-date">${fmtDate(e.date)}</span></div>
+      <div class="j-row"><span class="dot" style="background:${p.color}"></span><strong>${isMP(e.path) ? "Middle Pillar" : `Path ${e.path} · ${esc(p.name)}`} <span class="heb">${esc(p.letter)}</span></strong><span class="j-date">${fmtDate(e.date)}</span></div>
       <div class="j-meta">${e.duration ? `${e.duration} min · ` : ""}protection ${prot}/${PROTECTION_STEPS.length}${e.grounded ? " · grounded" : ""}${e.moodBefore && e.moodAfter ? ` · mood ${e.moodBefore}→${e.moodAfter}` : ""}${e.effects?.length ? ` · ${e.effects.length} effect${e.effects.length === 1 ? "" : "s"}` : ""}${e.ready ? ' · <span class="ok">ready</span>' : ""}</div>
       ${e.experience ? `<p class="j-text">${esc(e.experience).slice(0, 220)}${e.experience.length > 220 ? "…" : ""}</p>` : ""}
       ${e.results && Object.keys(e.results).length ? `<div class="j-results">${Object.entries(e.results).filter(([, v]) => v.state).map(([k, v]) => `<span class="rs ${v.state}">${esc(k)} ${v.state === "better" ? "▲" : v.state === "worse" ? "▼" : "•"}</span>`).join("")}</div>` : ""}
@@ -1060,8 +1104,8 @@ function download(name, text, type) {
 $("#j-export").addEventListener("click", () => download(`pathworking-journal-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: "pathworking", version: 1, exported: new Date().toISOString(), entries: journalAll() }, null, 2), "application/json"));
 $("#j-export-md").addEventListener("click", () => {
   const md = ["# Pathworking journal"].concat(journalAll().sort((a, b) => a.date < b.date ? -1 : 1).map(e => {
-    const p = PATH_BY_N[e.path];
-    const L = [`## ${fmtDate(e.date)} — Path ${e.path} · ${p.letter} ${p.name} (${SEPH_BY_KEY[p.to].name} → ${SEPH_BY_KEY[p.from].name})`, ""];
+    const p = PINFO(e.path);
+    const L = [`## ${fmtDate(e.date)} — ${isMP(e.path) ? "Middle Pillar exercise" : `Path ${e.path} · ${p.letter} ${p.name} (${SEPH_BY_KEY[p.to].name} → ${SEPH_BY_KEY[p.from].name})`}`, ""];
     if (e.duration) L.push(`- Duration: ${e.duration} min`);
     if (e.location) L.push(`- Place: ${e.location}`);
     if (e.state) L.push(`- State before: ${e.state}`);
