@@ -46,7 +46,7 @@ export function buildMiddlePillar() {
   const V = s => `<button type="button" class="vibrate" data-say="${s}" title="Tap to hear">${s} <span class="say-ico" aria-hidden="true">🔊</span></button>`;
   const centreStep = (c, i) => ({
     title: `Charge ${c.name} · ${c.chakra.split(" (")[0]}`, where: `${c.name} · ${c.body}`, secs: 120, lit: MP_CENTRES.slice(0, i + 1).map(x => x.key), paths: [], focus: c.key,
-    html: `<p>Bring attention to ${c.body}. A sphere of <span class="swatch" style="background:${c.color}"></span>${c.colorName} forms there, the size of a grapefruit, ${i === 0 ? "bright as a star" : "fed by a thread of white light from the sphere above"}.</p>
+    html: `<p>Bring your attention to the centre ${c.body}. A sphere of <span class="swatch" style="background:${c.color}"></span>${c.colorName} forms there, the size of a grapefruit, ${i === 0 ? "bright as a star" : "fed by a thread of white light from the sphere above"}.</p>
       <p>When it is steady, tone the Name on a long out-breath, four times: ${V(c.godName)} — <em>${c.said}</em>, “${c.meaning}”. Feel the sound vibrate ${c.body.replace(/^at |^just /, "at ")}: ${c.feel}.</p>
       <p>Between tonings, breathe in and see the sphere grow brighter and more solid. Leave it shining.</p>`,
     cues: [
